@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ActivityResource;
 use App\Http\Resources\ClassSubjectResource;
+use App\Http\Resources\TeacherResource;
 use App\Http\Resources\UserResource;
 use App\Models\ClassSubject;
 use App\Models\Post;
@@ -50,6 +51,6 @@ class ClassSubjectController extends Controller
             $q->where('class_subjects.id', $id_class_subject);
         })->with('user')->get();
 
-        return response()->json(["teacher" => UserResource::collection([$teacher]), "students" => UserResource::collection($students)]);
+        return response()->json(["teacher" => new TeacherResource($teacher), "students" => UserResource::collection($students)]);
     }
 }

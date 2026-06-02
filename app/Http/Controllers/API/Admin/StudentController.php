@@ -45,7 +45,7 @@ class StudentController extends Controller
 
     public function show(Student $student)
     {
-        $student->load(['user', 'enrollments.schoolClass', 'enrollments.academicYear']);
+        $student->load(['user', 'enrollments.schoolClass']);
         return new StudentResource($student);
     }
 

@@ -19,6 +19,7 @@ use App\Http\Controllers\API\ExamAssignmentController;
 use App\Http\Controllers\API\ExamAttemptController;
 use App\Http\Controllers\API\ExamController;
 use App\Http\Controllers\API\QuestionController;
+use App\Http\Controllers\API\UserController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -26,8 +27,15 @@ Route::get('/user', function () {
     $users = User::get();
     return response()->json($users);
 });
+
+Route::get('/files/{filename}', function ($filename) {
+    return response()->file(storage_path("app/public/posts/" . $filename));
+});
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/user/change-password', [UserController::class, 'changePassword']);
+    Route::post('/user/change-photo', [UserController::class, 'changePhoto']);
     /*
     | TEACHER + STUDENT
     */
@@ -37,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::prefix('/class/{id_class_subject}')->group(function () {
                 Route::get('/', [ClassSubjectController::class, 'activity']);
                 Route::get('/member', [ClassSubjectController::class, 'memberClass']);
-                Route::get('/assignment', [AssignmentController::class, 'index'])->name('listAssigments');
+                Route::get('/assignment', [AssignmentController::class, 'assignmentClass'])->name('listAssigments');
                 Route::get('/post/{id_post}', [PostController::class, "detailPost"]);
                 Route::get('/post/{id_post}/comment', [CommentController::class, "index"]);
                 Route::post('/post/{id_post}/comment', [CommentController::class, "store"]);
@@ -57,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     */
     Route::middleware('role:student')->group(function () {
         Route::post('/class/{id_class_subject}/post/{id_post}/submission', [SubmissionController::class, "store"]);
+        Route::get('/assignment', [AssignmentController::class, 'index']);
     });
 
     /*

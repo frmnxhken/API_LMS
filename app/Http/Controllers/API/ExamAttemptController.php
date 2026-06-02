@@ -102,6 +102,7 @@ class ExamAttemptController extends Controller
             'attempt_id' => $attempt->id,
             'started_at' => $attempt->started_at,
             'end_time' => $exam->end_time,
+            'duration' => $exam->exam->duration,
             'questions' => ExamQuestionResource::collection($questions),
         ]);
     }

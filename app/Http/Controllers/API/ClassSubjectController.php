@@ -19,14 +19,14 @@ class ClassSubjectController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role === 'teacher') {
-            $classSubjects = ClassSubject::where('teacher_id', $user->teacher->id)->get();
+        if ($user->role === "teacher") {
+            $classSubjects = ClassSubject::with('subject', 'teacher.user', 'schoolClass')->where('teacher_id', $user->teacher->id)->get();
         } elseif ($user->role === 'student') {
-            $classSubjects = ClassSubject::with('subject', 'teacher.user')->whereHas('schoolClass.enrollments', function ($q) use ($user) {
+            $classSubjects = ClassSubject::with('subject', 'teacher.user', 'schoolClass')->whereHas('schoolClass.enrollments', function ($q) use ($user) {
                 $q->where('student_id', $user->student->id);
             })->get();
         }
-
+        // return $classSubjects;
         return ClassSubjectResource::collection($classSubjects);
     }
 

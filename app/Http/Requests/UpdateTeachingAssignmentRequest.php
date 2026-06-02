@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTeachingAssignmentRequest extends FormRequest
 {
@@ -22,12 +23,21 @@ class UpdateTeachingAssignmentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $assignment = $this->route('classSubject');
+        $id = $this->route('classSubject')?->id;
 
         return [
             'school_class_id' => ['required', 'exists:school_classes,id'],
             'subject_id' => ['required', 'exists:subjects,id'],
-            'teacher_id' => ['required', 'exists:teachers,id'],
+            'teacher_id' => [
+                'required',
+                'exists:teachers,id',
+                Rule::unique('class_subjects')
+                    ->where(
+                        fn($query) => $query
+                            ->where('school_class_id', $this->school_class_id)
+                            ->where('subject_id', $this->subject_id)
+                    )->ignore($id),
+            ],
         ];
     }
 }

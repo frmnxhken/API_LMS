@@ -103,11 +103,17 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::prefix("/admin")->group(function () {
-    Route::apiResource("/academic", AdminAcademicYearController::class);
-    Route::apiResource("/class", SchoolClassController::class);
+    Route::put("/academic/{academicYear}/activate", [AdminAcademicYearController::class, 'activate']);
+    Route::apiResource("/academic", AdminAcademicYearController::class)->parameters(["academic" => "academicYear"]);
+    Route::apiResource("/class", SchoolClassController::class)->parameters(["class" => "schoolClass"]);
     Route::apiResource("/subject", SubjectController::class);
-    Route::apiResource("/student", StudentController::class);
     Route::post("/student/import", [StudentController::class, "import"]);
+    Route::get("/student/export", [StudentController::class, "export"]);
+    Route::apiResource("/student", StudentController::class);
+    Route::post("/teacher/import", [TeacherController::class, "import"]);
+    Route::get("/teacher/export", [TeacherController::class, "export"]);
     Route::apiResource("/teacher", TeacherController::class);
-    Route::apiResource("/teaching-assignment", TeachingAssignmentController::class);
+    Route::apiResource("/teaching-assignment", TeachingAssignmentController::class)->parameters([
+        'teaching-assignment' => 'classSubject'
+    ]);
 });

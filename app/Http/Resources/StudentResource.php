@@ -22,6 +22,7 @@ class StudentResource extends JsonResource
             'school_class_id' => $this->enrollments[0]->schoolClass->id,
             "level" => $this->enrollments[0]->schoolClass->level,
             "major" => $this->enrollments[0]->schoolClass->major,
+            "section" => $this->enrollments[0]->schoolClass->section,
         ];
     }
 }

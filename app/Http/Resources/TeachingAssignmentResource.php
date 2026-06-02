@@ -18,6 +18,7 @@ class TeachingAssignmentResource extends JsonResource
             "id" => $this->id,
             "level" => $this->schoolClass->level,
             "major" => $this->schoolClass->major,
+            "section" => $this->schoolClass->section,
             "subject" => $this->subject->name,
             "nip" => $this->teacher->nip,
             "teacher" => $this->teacher->user->name,

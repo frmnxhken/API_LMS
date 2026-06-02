@@ -8,6 +8,10 @@ class AcademicYear extends Model
 {
     protected $guarded = ['id'];
 
+    protected $attributes = [
+        'is_active' => 0,
+    ];
+
     public function class_subjects()
     {
         return $this->hasMany(ClassSubject::class);

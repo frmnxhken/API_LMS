@@ -3,63 +3,36 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SchoolClassRequest;
 use App\Models\SchoolClass;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class SchoolClassController extends Controller
 {
     public function index()
     {
-        $classes = SchoolClass::get();
-        return response()->json($classes);
+        return response()->json(SchoolClass::get());
     }
 
-    public function store(Request $request)
+    public function show(SchoolClass $schoolClass)
     {
-        $validation = Validator::make($request->all(), [
-            "level" => "required",
-            "major" => "required"
-        ]);
-
-        if ($validation->fails()) {
-            return response()->json(["errors" => $validation->errors()]);
-        }
-
-        try {
-            SchoolClass::create($request->all());
-            return response()->json(["message" => "success"]);
-        } catch (\Throwable $th) {
-            return response()->json(["error" => $th->getMessage()]);
-        }
+        return response()->json($schoolClass);
     }
 
-    public function update(Request $request, $id)
+    public function store(SchoolClassRequest $request)
     {
-        $validation = Validator::make($request->all(), [
-            "level" => "required",
-            "major" => "required"
-        ]);
-
-        if ($validation->fails()) {
-            return response()->json(["errors" => $validation->errors()]);
-        }
-
-        try {
-            SchoolClass::find($id)->update($request->all());
-            return response()->json(["message" => "success"]);
-        } catch (\Throwable $th) {
-            return response()->json(["error" => $th->getMessage()]);
-        }
+        SchoolClass::create($request->validated());
+        return response()->json(['message' => 'success'], 201);
     }
 
-    public function destroy(Request $request, $id)
+    public function update(SchoolClassRequest $request, SchoolClass $schoolClass)
     {
-        try {
-            SchoolClass::find($id)->delete();
-            return response()->json(["message" => "success"]);
-        } catch (\Throwable $th) {
-            return response()->json(["error" => $th->getMessage()]);
-        }
+        $schoolClass->update($request->validated());
+        return response()->json(['message' => 'success'], 201);
+    }
+
+    public function destroy(SchoolClass $schoolClass)
+    {
+        $schoolClass->delete();
+        return response()->json(['message' => 'success']);
     }
 }

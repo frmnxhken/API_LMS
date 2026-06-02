@@ -68,41 +68,41 @@ class UserSeeder extends Seeder
         | STUDENTS
         */
 
-        $students = [
-            ['name' => 'Rizky Maulana', 'nis' => '2301001'],
-            ['name' => 'Dimas Saputra', 'nis' => '2301002'],
-            ['name' => 'Fajar Nugroho', 'nis' => '2301003'],
-            ['name' => 'Iqbal Ramadhan', 'nis' => '2301004'],
-            ['name' => 'Agus Setiawan', 'nis' => '2301005'],
-            ['name' => 'Nanda Putri', 'nis' => '2301006'],
-            ['name' => 'Putri Ayu Lestari', 'nis' => '2301007'],
-            ['name' => 'Rahmat Hidayat', 'nis' => '2301008'],
-            ['name' => 'Yoga Pratama', 'nis' => '2301009'],
-            ['name' => 'Bagus Kurniawan', 'nis' => '2301010'],
-            ['name' => 'Mochammad Arif', 'nis' => '2301011'],
-            ['name' => 'Salsa Nabila', 'nis' => '2301012'],
-            ['name' => 'Dewi Anggraini', 'nis' => '2301013'],
-            ['name' => 'Nabila Zahra', 'nis' => '2301014'],
-            ['name' => 'Aldi Saputra', 'nis' => '2301015'],
-        ];
+        //     $students = [
+        //         ['name' => 'Rizky Maulana', 'nis' => '2301001'],
+        //         ['name' => 'Dimas Saputra', 'nis' => '2301002'],
+        //         ['name' => 'Fajar Nugroho', 'nis' => '2301003'],
+        //         ['name' => 'Iqbal Ramadhan', 'nis' => '2301004'],
+        //         ['name' => 'Agus Setiawan', 'nis' => '2301005'],
+        //         ['name' => 'Nanda Putri', 'nis' => '2301006'],
+        //         ['name' => 'Putri Ayu Lestari', 'nis' => '2301007'],
+        //         ['name' => 'Rahmat Hidayat', 'nis' => '2301008'],
+        //         ['name' => 'Yoga Pratama', 'nis' => '2301009'],
+        //         ['name' => 'Bagus Kurniawan', 'nis' => '2301010'],
+        //         ['name' => 'Mochammad Arif', 'nis' => '2301011'],
+        //         ['name' => 'Salsa Nabila', 'nis' => '2301012'],
+        //         ['name' => 'Dewi Anggraini', 'nis' => '2301013'],
+        //         ['name' => 'Nabila Zahra', 'nis' => '2301014'],
+        //         ['name' => 'Aldi Saputra', 'nis' => '2301015'],
+        //     ];
 
-        foreach ($students as $s) {
+        //     foreach ($students as $s) {
 
-            $firstName = strtolower(explode(' ', $s['name'])[0]);
-            $username = $firstName . '_' . $s['nis'];
+        //         $firstName = strtolower(explode(' ', $s['name'])[0]);
+        //         $username = $firstName . '_' . $s['nis'];
 
-            $userId = DB::table('users')->insertGetId([
-                'name' => $s['name'],
-                'username' => $username,
-                'password' => Hash::make('tes123'),
-                'photo' => 'default.png',
-                'role' => 'student'
-            ]);
+        //         $userId = DB::table('users')->insertGetId([
+        //             'name' => $s['name'],
+        //             'username' => $username,
+        //             'password' => Hash::make('tes123'),
+        //             'photo' => 'default.png',
+        //             'role' => 'student'
+        //         ]);
 
-            DB::table('students')->insert([
-                'user_id' => $userId,
-                'nis' => $s['nis']
-            ]);
-        }
+        //         DB::table('students')->insert([
+        //             'user_id' => $userId,
+        //             'nis' => $s['nis']
+        //         ]);
+        //     }
     }
 }

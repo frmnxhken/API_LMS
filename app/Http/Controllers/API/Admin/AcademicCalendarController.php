@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AcademicCalendarRequest;
 use App\Models\AcademicCalendar;
 use App\Models\AcademicYear;
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 class AcademicCalendarController extends Controller
@@ -22,9 +21,9 @@ class AcademicCalendarController extends Controller
 
     public function update(
         AcademicCalendar $academicCalendar,
-        AcademicCalendarRequest $reuest
+        AcademicCalendarRequest $request
     ) {
-        $academicCalendar->update($reuest->validated());
+        $academicCalendar->update($request->validated());
         return response()->json(["message" => "success"]);
     }
 
@@ -32,22 +31,10 @@ class AcademicCalendarController extends Controller
     {
         $today = Carbon::today();
 
-        $calendars = AcademicCalendar::query()
-            ->whereMonth('date', $today->month)
-            ->whereYear('date', $today->year)
-            ->orderBy('date')
-            ->get();
-
-        $currentIndex = $calendars->search(function ($item) use ($today) {
-            return Carbon::parse($item->date)->isSameDay($today);
-        });
-
-        if ($currentIndex === false) {
-            $currentIndex = 0;
-        }
-
-        $startIndex = floor($currentIndex / 7) * 7;
-        $week = $calendars->slice($startIndex, 7)->values();
+        $startOfWeek = $today->copy()->startOfWeek();
+        $endOfWeek = $today->copy()->endOfWeek();
+        $week = AcademicCalendar::whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->orderBy('date')->get();
 
         return response()->json($week);
     }

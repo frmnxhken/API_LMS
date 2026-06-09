@@ -141,8 +141,4 @@ Route::prefix("/admin")->group(function () {
     Route::get('/attendance-report/today', [AttendanceReportController::class, 'today']);
     Route::get('/attendance-report/history', [AttendanceReportController::class, 'history']);
     Route::post('/attendance-report/export', [AttendanceReportController::class, 'export']);
-    Route::get(
-        '/attendance-report/student/{studentId}',
-        [AttendanceReportController::class, 'studentReport']
-    );
 });

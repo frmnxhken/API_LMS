@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ExportStudentRequest;
 use App\Http\Requests\ImportStudentRequest;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
@@ -23,32 +24,17 @@ class StudentController extends Controller implements HasMiddleware
         ];
     }
 
-    public function __construct(protected StudentService $studentService) {}
+    public function __construct(protected StudentService $service) {}
 
     public function index(Request $request)
     {
-        $query = Student::query()
-            ->whereHas("enrollments")
-            ->with(["user", "enrollments.schoolClass"]);
-
-        if ($request->filled("filter")) {
-            $query->whereHas("enrollments", function ($q) use ($request) {
-                $q->where("school_class_id", $request->filter);
-            });
-        }
-
-        if ($request->filled("search")) {
-            $query->whereHas("user", function ($q) use ($request) {
-                $q->where("name", "like", "%" . $request->search . "%");
-            });
-        }
-
-        return new StudentCollection($query->paginate(10));
+        $students = $this->service->getStudents($request);
+        return new StudentCollection($students->paginate(10));
     }
 
     public function store(StoreStudentRequest $request)
     {
-        $student = $this->studentService->create($request->validated());
+        $student = $this->service->create($request->validated());
         return response()->json(["message" => "success"], 201);
     }
 
@@ -60,20 +46,20 @@ class StudentController extends Controller implements HasMiddleware
 
     public function update(UpdateStudentRequest $request, Student $student)
     {
-        $this->studentService->update($student, $request->validated());
+        $this->service->update($student, $request->validated());
         return response()->json(["message" => "Success"]);
     }
 
     public function destroy(Student $student)
     {
-        $this->studentService->delete($student);
+        $this->service->delete($student);
         return response()->json(["message" => "Success"]);
     }
 
     public function import(ImportStudentRequest $request)
     {
         try {
-            $this->studentService->import($request->file("file"), $request->school_class_id);
+            $this->service->import($request->file("file"), $request->school_class_id);
             return response()->json(["message" => "Success"]);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $errors = [];
@@ -88,9 +74,9 @@ class StudentController extends Controller implements HasMiddleware
         }
     }
 
-    public function export(Request $request)
+    public function export(ExportStudentRequest $request)
     {
-        return $this->studentService->export(
+        return $this->service->export(
             $request->school_class_id
         );
     }

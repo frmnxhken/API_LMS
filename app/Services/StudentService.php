@@ -19,6 +19,27 @@ class StudentService
         private GradeService $gradeService
     ) {}
 
+    public function getStudents($request)
+    {
+        $query = Student::query()
+            ->whereHas("enrollments")
+            ->with(["user", "enrollments.schoolClass"]);
+
+        if ($request->filled("filter")) {
+            $query->whereHas("enrollments", function ($q) use ($request) {
+                $q->where("school_class_id", $request->filter);
+            });
+        }
+
+        if ($request->filled("search")) {
+            $query->whereHas("user", function ($q) use ($request) {
+                $q->where("name", "like", "%" . $request->search . "%");
+            });
+        }
+
+        return $query;
+    }
+
     public function create(array $data): Student
     {
         return DB::transaction(function () use ($data) {

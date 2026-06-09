@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthorizationMiddleware;
+use App\Http\Middleware\EnsureAcademicYearDraft;
 use App\Http\Middleware\EnsureMemberClass;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             "role" => AuthorizationMiddleware::class,
             "memberClass" => EnsureMemberClass::class,
+            'academicYearDraft' => EnsureAcademicYearDraft::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

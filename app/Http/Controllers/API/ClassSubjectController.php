@@ -8,9 +8,7 @@ use App\Http\Resources\ClassSubjectResource;
 use App\Http\Resources\TeacherResource;
 use App\Http\Resources\UserResource;
 use App\Models\ClassSubject;
-use App\Models\Post;
 use App\Models\Student;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ClassSubjectController extends Controller
@@ -26,7 +24,7 @@ class ClassSubjectController extends Controller
                 $q->where('student_id', $user->student->id);
             })->get();
         }
-        // return $classSubjects;
+
         return ClassSubjectResource::collection($classSubjects);
     }
 
@@ -36,10 +34,9 @@ class ClassSubjectController extends Controller
             "posts" => function ($query) {
                 $query->orderBy("id", "DESC");
             },
-            "subject"
-        ])
-            ->where("id", $id_class_subject)
-            ->get();
+            "subject",
+            "schoolClass"
+        ])->where("id", $id_class_subject)->get();
         return response()->json(ActivityResource::collection($posts));
     }
 

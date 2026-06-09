@@ -11,26 +11,35 @@ use App\Http\Resources\StudentResource;
 use App\Models\Student;
 use App\Services\StudentService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class StudentController extends Controller
+class StudentController extends Controller implements HasMiddleware
 {
+    public static function middleware()
+    {
+        return [
+            new Middleware("academicYearDraft", only: ["update", "destroy", "import"]),
+        ];
+    }
+
     public function __construct(protected StudentService $studentService) {}
 
     public function index(Request $request)
     {
         $query = Student::query()
-            ->whereHas('enrollments')
-            ->with(['user', 'enrollments.schoolClass']);
+            ->whereHas("enrollments")
+            ->with(["user", "enrollments.schoolClass"]);
 
-        if ($request->filled('filter')) {
-            $query->whereHas('enrollments', function ($q) use ($request) {
-                $q->where('school_class_id', $request->filter);
+        if ($request->filled("filter")) {
+            $query->whereHas("enrollments", function ($q) use ($request) {
+                $q->where("school_class_id", $request->filter);
             });
         }
 
-        if ($request->filled('search')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%');
+        if ($request->filled("search")) {
+            $query->whereHas("user", function ($q) use ($request) {
+                $q->where("name", "like", "%" . $request->search . "%");
             });
         }
 
@@ -40,42 +49,42 @@ class StudentController extends Controller
     public function store(StoreStudentRequest $request)
     {
         $student = $this->studentService->create($request->validated());
-        return response()->json(['message' => 'success'], 201);
+        return response()->json(["message" => "success"], 201);
     }
 
     public function show(Student $student)
     {
-        $student->load(['user', 'enrollments.schoolClass']);
+        $student->load(["user", "enrollments.schoolClass"]);
         return new StudentResource($student);
     }
 
     public function update(UpdateStudentRequest $request, Student $student)
     {
         $this->studentService->update($student, $request->validated());
-        return response()->json(['message' => 'Success']);
+        return response()->json(["message" => "Success"]);
     }
 
     public function destroy(Student $student)
     {
         $this->studentService->delete($student);
-        return response()->json(['message' => 'Success']);
+        return response()->json(["message" => "Success"]);
     }
 
     public function import(ImportStudentRequest $request)
     {
         try {
-            $this->studentService->import($request->file('file'), $request->school_class_id);
-            return response()->json(['message' => 'Success']);
+            $this->studentService->import($request->file("file"), $request->school_class_id);
+            return response()->json(["message" => "Success"]);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $errors = [];
             foreach ($e->failures() as $failure) {
                 $errors[] = "Baris {$failure->row()}: "
-                    . implode(', ', $failure->errors());
+                    . implode(", ", $failure->errors());
             }
 
-            return response()->json(['errors' => $errors], 422);
+            return response()->json(["errors" => $errors], 422);
         } catch (\Throwable $e) {
-            return response()->json(['message' => 'Terjadi kesalahan saat import file.'], 500);
+            return response()->json(["message" => "Terjadi kesalahan saat import file."], 500);
         }
     }
 

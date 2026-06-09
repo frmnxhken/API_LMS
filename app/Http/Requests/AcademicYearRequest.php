@@ -28,15 +28,13 @@ class AcademicYearRequest extends FormRequest
         return [
             'start' => [
                 'required',
-                'integer',
-                'digits:4',
+                'date',
                 'lte:end',
             ],
 
             'end' => [
                 'required',
-                'integer',
-                'digits:4',
+                'date',
                 'gte:start',
             ],
 

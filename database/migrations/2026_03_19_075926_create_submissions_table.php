@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('submissions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('post_id')->constrained('posts')->cascadeOnDelete();
-            $table->foreignId('student_id');
+            $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['pending', 'done', 'graded']);
             $table->integer('score');
             $table->timestamps();

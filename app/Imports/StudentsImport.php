@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\User;
 use App\Models\AcademicYear;
+use App\Services\GradeService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -18,6 +19,7 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation
     public function __construct($schoolClassId)
     {
         $this->schoolClassId = $schoolClassId;
+        $this->gradeService = app(GradeService::class);
     }
 
     public function model(array $row)
@@ -42,6 +44,11 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation
                 'school_class_id'  => $this->schoolClassId,
                 'academic_year_id' => AcademicYear::activeId(),
             ]);
+
+            $this->gradeService->generateForStudent(
+                $student->id,
+                $this->schoolClassId
+            );
 
             return $user;
         });

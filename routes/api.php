@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\API\AcademicYearController;
+use App\Http\Controllers\API\Admin\AcademicCalendarController;
 use App\Http\Controllers\API\Admin\AcademicYearController as AdminAcademicYearController;
-use App\Models\User;
+use App\Http\Controllers\API\Admin\AttendanceReportController;
 use App\Http\Controllers\API\AssesmentController;
 use App\Http\Controllers\API\AssignmentController;
 use App\Http\Controllers\API\AuthController;
@@ -15,22 +15,21 @@ use App\Http\Controllers\API\Admin\StudentController;
 use App\Http\Controllers\API\Admin\SubjectController;
 use App\Http\Controllers\API\Admin\TeacherController;
 use App\Http\Controllers\API\Admin\TeachingAssignmentController;
+use App\Http\Controllers\API\AttendanceController;
 use App\Http\Controllers\API\ExamAssignmentController;
 use App\Http\Controllers\API\ExamAttemptController;
 use App\Http\Controllers\API\ExamController;
+use App\Http\Controllers\API\FileStreamController;
+use App\Http\Controllers\API\GradeController;
 use App\Http\Controllers\API\QuestionController;
+use App\Http\Controllers\API\StatController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\WeightSumController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/user', function () {
-    $users = User::get();
-    return response()->json($users);
-});
 
-Route::get('/files/{filename}', function ($filename) {
-    return response()->file(storage_path("app/public/posts/" . $filename));
-});
+Route::get('/files/{path}', [FileStreamController::class, "stream"])->where('path', '.*');;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
@@ -66,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:student')->group(function () {
         Route::post('/class/{id_class_subject}/post/{id_post}/submission', [SubmissionController::class, "store"]);
         Route::get('/assignment', [AssignmentController::class, 'index']);
+        Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
     });
 
     /*
@@ -96,7 +96,12 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::put('/{id_submission}/submission', [AssesmentController::class, "update"])->name('signAssesment');
             });
 
+            Route::get('/weight-score', [WeightSumController::class, "show"]);
+            Route::put('/weight-score', [WeightSumController::class, "update"]);
             Route::apiResource('/exam', ExamAssignmentController::class)->only(['store', 'update', 'destroy']);
+            Route::get('/report', [GradeController::class, "index"]);
+            Route::get('/report/export', [GradeController::class, "export"]);
+            Route::get('/report/{id_student}', [GradeController::class, "show"]);
         });
 
         Route::apiResource('/exam', ExamController::class);
@@ -112,8 +117,13 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::prefix("/admin")->group(function () {
+    Route::get("/stat", [StatController::class, "statAdmin"]);
+    Route::put('/academic/{academicYear}/status', [AdminAcademicYearController::class, 'handleStatus']);
     Route::put("/academic/{academicYear}/activate", [AdminAcademicYearController::class, 'activate']);
     Route::apiResource("/academic", AdminAcademicYearController::class)->parameters(["academic" => "academicYear"]);
+    Route::get("/calendar", [AcademicCalendarController::class, 'index']);
+    Route::get("/calendar/weekly", [AcademicCalendarController::class, 'weekly']);
+    Route::put("/calendar/{academicCalendar}", [AcademicCalendarController::class, "update"]);
     Route::apiResource("/class", SchoolClassController::class)->parameters(["class" => "schoolClass"]);
     Route::apiResource("/subject", SubjectController::class);
     Route::post("/student/import", [StudentController::class, "import"]);
@@ -125,4 +135,14 @@ Route::prefix("/admin")->group(function () {
     Route::apiResource("/teaching-assignment", TeachingAssignmentController::class)->parameters([
         'teaching-assignment' => 'classSubject'
     ]);
+
+    Route::put('/attendance', [AttendanceController::class, 'upsertStatus']);
+    Route::get('/attendance-report/summary', [AttendanceReportController::class, 'summary']);
+    Route::get('/attendance-report/today', [AttendanceReportController::class, 'today']);
+    Route::get('/attendance-report/history', [AttendanceReportController::class, 'history']);
+    Route::post('/attendance-report/export', [AttendanceReportController::class, 'export']);
+    Route::get(
+        '/attendance-report/student/{studentId}',
+        [AttendanceReportController::class, 'studentReport']
+    );
 });

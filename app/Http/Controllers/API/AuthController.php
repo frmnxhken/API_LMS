@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpKernel\Fragment\RoutableFragmentRenderer;
 
 class AuthController extends Controller
 {
@@ -25,6 +26,13 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+
+        if ($user->role === 'teacher') {
+            $user->teacher;
+        } elseif ($user->role === 'student') {
+            $user->student;
+        }
 
         return response()->json([
             'token' => $token,

@@ -19,13 +19,10 @@ class AssignmentController extends Controller
         $posts = Post::with([
             'classSubject.subject',
             'classSubject.schoolClass',
-        ])
-            ->where('type', 'assignment')
+        ])->where('type', 'assignment')
             ->whereHas('classSubject.schoolClass.enrollments', function ($query) use ($user) {
                 $query->where('student_id', $user->student->id);
-            })
-            ->latest()
-            ->get();
+            })->latest()->get();
 
         return AssignmentResource::collection($posts);
     }
@@ -34,11 +31,9 @@ class AssignmentController extends Controller
     {
         $posts = ClassSubject::with([
             "posts" => function ($query) {
-                $query->orderBy("id", "DESC")->where("type", "assignment");
+                $query->latest()->where("type", "assignment");
             },
-        ])
-            ->where("id", $id_class_subject)
-            ->get();
+        ])->where("id", $id_class_subject)->get();
         return response()->json($posts);
     }
 }

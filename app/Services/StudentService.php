@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exports\StudentsExport;
 use App\Imports\StudentsImport;
 use App\Models\AcademicYear;
+use App\Models\Grade;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class StudentService
 {
+    public function __construct(
+        private GradeService $gradeService
+    ) {}
+
     public function create(array $data): Student
     {
         return DB::transaction(function () use ($data) {
@@ -29,10 +34,15 @@ class StudentService
             ]);
 
             $student = $user->student()->create(['nis' => $data['nis'],]);
-            $student->enrollments()->create([
+            $enrollment = $student->enrollments()->create([
                 'school_class_id' => $data['school_class_id'],
                 'academic_year_id' => AcademicYear::activeId(),
             ]);
+
+            $this->gradeService->generateForStudent(
+                $student->id,
+                $enrollment->school_class_id
+            );
 
             return $student;
         });
@@ -56,19 +66,29 @@ class StudentService
             $user->update($payload);
             $student->update(['nis' => $data['nis']]);
 
-            $student->enrollments()
-                ->where('academic_year_id', AcademicYear::activeId())
-                ->update(['school_class_id' => $data['school_class_id']]);
+            $enrollment = $student->enrollments()->firstOrFail();
+            $oldClassId = $enrollment->school_class_id;
+
+            $enrollment->update([
+                'school_class_id' => $data['school_class_id']
+            ]);
+
+            if ($oldClassId !== (int) $data['school_class_id']) {
+                if ($oldClassId !== (int) $data['school_class_id']) {
+                    Grade::where('student_id', $student->id)->delete();
+                    $this->gradeService->generateForStudent(
+                        $student->id,
+                        $data['school_class_id']
+                    );
+                }
+            }
         });
     }
 
     public function delete(Student $student): void
     {
         DB::transaction(function () use ($student) {
-            $user = $student->user;
-            $student->enrollments()->delete();
-            $student->delete();
-            $user->delete();
+            $student->user->delete();
         });
     }
 

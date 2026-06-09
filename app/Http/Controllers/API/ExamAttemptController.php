@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ExamQuestionResource;
 use App\Models\ExamAssignment;
 use App\Models\ExamAttempt;
+use App\Models\Grade;
 use App\Models\QuestionOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -103,6 +104,8 @@ class ExamAttemptController extends Controller
             'started_at' => $attempt->started_at,
             'end_time' => $exam->end_time,
             'duration' => $exam->exam->duration,
+            'type' => $exam->exam->type,
+            'subject' => $exam->exam->subject->name,
             'questions' => ExamQuestionResource::collection($questions),
         ]);
     }
@@ -152,9 +155,31 @@ class ExamAttemptController extends Controller
             'status' => 'submitted',
         ]);
 
+        $grade = Grade::where('student_id', $user->student->id)->firstOrFail();
+
+        switch ($exam->exam->type) {
+            case 'uas':
+                $grade->update([
+                    'uas_score' => $score
+                ]);
+                break;
+            case 'uts':
+                $grade->update([
+                    'uts_score' => $score
+                ]);
+                break;
+            case 'harian':
+                $grade->update([
+                    'daily_total_score' =>
+                    $grade->daily_total_score + $score
+                ]);
+                break;
+        }
+
         return response()->json([
             'score' => round($score, 2),
             'correct_answers' => $correctAnswers,
+            'ex' => $exam->exam->type,
         ]);
     }
 }

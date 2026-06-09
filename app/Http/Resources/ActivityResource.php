@@ -17,6 +17,7 @@ class ActivityResource extends JsonResource
         return [
             "id" => $this->id,
             "subject" => $this->subject->name,
+            "class_name" => $this->schoolClass->level . " " . $this->schoolClass->major . " " . $this->schoolClass->section,
             "posts" => $this->posts
         ];
     }

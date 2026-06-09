@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
 class CommentController extends Controller
 {
@@ -16,22 +15,13 @@ class CommentController extends Controller
         return response()->json($comments);
     }
 
-    public function store($id_class_subject, $id_post, Request $request)
+    public function store($id_class_subject, $id_post, CommentRequest $commentRequest)
     {
-        $validation = Validator::make($request->all(), [
-            "message" => "required|min:1"
-        ]);
-
-        if ($validation->fails()) {
-            return response()->json(["errors" => $validation->errors()]);
-        }
-
         $user = Auth::user();
-
         Comment::create([
             "user_id" => $user->id,
             "post_id" => $id_post,
-            "message" => $request->message
+            "message" => $commentRequest->message
         ]);
 
         return response()->json(["message" => "Success"]);

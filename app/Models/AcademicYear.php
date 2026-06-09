@@ -12,6 +12,11 @@ class AcademicYear extends Model
         'is_active' => 0,
     ];
 
+    public static function active()
+    {
+        return self::where('is_active', true)->firstOrFail();
+    }
+
     public function class_subjects()
     {
         return $this->hasMany(ClassSubject::class);

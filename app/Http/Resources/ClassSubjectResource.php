@@ -16,7 +16,7 @@ class ClassSubjectResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'class_name' => $this->schoolClass->level . " " . $this->schoolClass->major,
+            'class_name' => $this->schoolClass->level . " " . $this->schoolClass->major . "" . $this->schoolClass->section,
             'subject' => $this->subject->name,
             'teacher' => $this->teacher->user->name
         ];

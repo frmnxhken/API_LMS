@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Grade;
 use App\Models\Post;
 use App\Models\PostFile;
 use App\Models\Student;
 use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -139,16 +141,46 @@ class PostController extends Controller
             ], 404);
         }
 
-        foreach ($post->post_files as $file) {
-            if ($file->path && Storage::exists($file->path)) {
-                Storage::delete($file->path);
-            }
-        }
+        DB::transaction(function () use ($post, $id_class_subject) {
 
-        $post->post_files()->delete();
-        $post->delete();
+            foreach ($post->post_files as $file) {
+                if ($file->path && Storage::exists($file->path)) {
+                    Storage::delete($file->path);
+                }
+            }
+
+            if ($post->type === 'assignment') {
+
+                foreach ($post->submissions as $submission) {
+
+                    if ($submission->score === null) {
+                        continue;
+                    }
+
+                    Grade::where(
+                        'student_id',
+                        $submission->student_id
+                    )
+                        ->where(
+                            'class_subject_id',
+                            $id_class_subject
+                        )
+                        ->decrement(
+                            'assignment_total_score',
+                            $submission->score
+                        );
+                }
+            }
+
+            $post->post_files()->delete();
+
+            $post->submissions()->delete();
+
+            $post->delete();
+        });
+
         return response()->json([
-            "message" => "Success"
+            'message' => 'Success'
         ]);
     }
 

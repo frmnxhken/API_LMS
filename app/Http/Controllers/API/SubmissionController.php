@@ -3,60 +3,44 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SubmissionRequest;
+use App\Models\Post;
 use App\Models\Submission;
-use App\Models\SubmissionFile;
-use Illuminate\Http\Request;
+use App\Services\SubmissionService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class SubmissionController extends Controller
 {
-    public function store($id_subject_class, $id_post, Request $request)
-    {
-        $user = Auth::user();
-        $validation = Validator::make($request->all(), [
-            "files" => "required",
-            "files.*" => "file|max:10240"
-        ]);
+    public function __construct(
+        protected SubmissionService $service,
+    ) {}
 
-        if ($validation->fails()) {
-            return response()->json(["errors" => $validation->errors()]);
+    public function store($id_subject_class, $id_post, SubmissionRequest $request)
+    {
+        $post = Post::findOrFail($id_post);
+
+        if ($post->due && now()->greaterThan($post->due)) {
+            return response()->json(["message" => "Deadline"], 422);
         }
 
         try {
-            $submission = Submission::where("post_id", $id_post)->where("student_id", $user->student->id)->firstOrFail();;
-            $submission->status = "done";
-            $submission->save();
-            $files = $request->file('files');
+            DB::transaction(function () use ($request, $id_post) {
+                $user = Auth::user();
 
-            if ($files) {
-                if (!is_array($files)) {
-                    $files = [$files];
-                }
-                $this->uploadSubmissionFile($submission, $files);
-            }
+                $submission = Submission::firstOrCreate([
+                    "post_id" => $id_post,
+                    "student_id" => $user->student->id,
+                ]);
 
-            return response()->json([
-                "message" => "Submission berhasil diupload",
-            ], 200);
+                $submission->update(["status" => "done"]);
+                $files = $request->file('files');
+                $this->service->upload($submission, $files);
+            });
+
+            return response()->json(["message" => "uploaded"], 200);
         } catch (\Throwable $th) {
-            return response()->json([
-                "error" => $th->getMessage()
-            ], 500);
-        }
-    }
-
-    protected function uploadSubmissionFile(Submission $submission,  $files): void
-    {
-        foreach ($files as $file) {
-            $path = $file->store('posts', 'public');
-            SubmissionFile::create([
-                'submission_id' => $submission->id,
-                'file_path' => $path,
-                'original_name' => $file->getClientOriginalName(),
-                'extension' => $file->getClientOriginalExtension(),
-                'size' => $file->getSize(),
-            ]);
+            return response()->json(["message" => $th->getMessage()], 500);
         }
     }
 }

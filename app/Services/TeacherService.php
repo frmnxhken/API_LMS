@@ -12,6 +12,19 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class TeacherService
 {
+    public function getTeachers($request)
+    {
+        $query = Teacher::query()->with("user");
+
+        if ($request->filled("search")) {
+            $query->whereHas("user", function ($q) use ($request) {
+                $q->where("name", "like", "%" . $request->search . "%");
+            });
+        }
+
+        return $query;
+    }
+
     public function create(array $data): Teacher
     {
         return DB::transaction(function () use ($data) {
@@ -48,14 +61,6 @@ class TeacherService
                 'nip' => $data['nip'],
                 'phone' => $data['phone'],
             ]);
-        });
-    }
-
-    public function delete(Teacher $teacher): void
-    {
-        DB::transaction(function () use ($teacher) {
-            $teacher->user->delete();
-            $teacher->delete();
         });
     }
 

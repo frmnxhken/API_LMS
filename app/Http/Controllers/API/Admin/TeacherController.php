@@ -22,24 +22,17 @@ class TeacherController extends Controller implements HasMiddleware
         ];
     }
 
-    public function __construct(protected TeacherService $teacherService) {}
+    public function __construct(protected TeacherService $service) {}
 
     public function index(Request $request)
     {
-        $query = Teacher::query()->with("user");
-
-        if ($request->filled("search")) {
-            $query->whereHas("user", function ($q) use ($request) {
-                $q->where("name", "like", "%" . $request->search . "%");
-            });
-        }
-
-        return TeacherResource::collection($query->paginate(10));
+        $teachers = $this->service->getTeachers($request);
+        return TeacherResource::collection($teachers->paginate(10));
     }
 
     public function store(StoreTeacherRequest $request)
     {
-        $this->teacherService->create($request->validated());
+        $this->service->create($request->validated());
         return response()->json(["message" => "success"], 201);
     }
 
@@ -50,20 +43,20 @@ class TeacherController extends Controller implements HasMiddleware
 
     public function update(UpdateTeacherRequest $request, Teacher $teacher)
     {
-        $this->teacherService->update($teacher, $request->validated());
+        $this->service->update($teacher, $request->validated());
         return response()->json(["message" => "success"]);
     }
 
     public function destroy(Teacher $teacher)
     {
-        $this->teacherService->delete($teacher);
+        $teacher->delete();
         return response()->json(["message" => "success"]);
     }
 
     public function import(ImportTeacherRequest $request)
     {
         try {
-            $this->teacherService->import($request->file("file"));
+            $this->service->import($request->file("file"));
             return response()->json(["message" => "success"]);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $errors = [];
@@ -78,6 +71,6 @@ class TeacherController extends Controller implements HasMiddleware
 
     public function export()
     {
-        return $this->teacherService->export();
+        return $this->service->export();
     }
 }

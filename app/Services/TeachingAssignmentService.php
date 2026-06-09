@@ -12,6 +12,21 @@ class TeachingAssignmentService
 {
     public function __construct(private GradeService $gradeService) {}
 
+    public function getTeachingAssignments($request)
+    {
+        $query = ClassSubject::query()->with(["teacher.user", "schoolClass", "subject"]);
+
+        if ($request->filled("school_class")) {
+            $query->where("school_class_id", $request->school_class);
+        }
+
+        if ($request->filled("subject")) {
+            $query->where("subject_id", $request->subject);
+        }
+
+        return $query;
+    }
+
     public function create(array $data): ClassSubject
     {
         return DB::transaction(function () use ($data) {
@@ -37,13 +52,6 @@ class TeachingAssignmentService
                 Grade::where('class_subject_id', $classSubject->id)->delete();
                 $this->gradeService->generateForClassSubject($classSubject->id);
             }
-        });
-    }
-
-    public function delete(ClassSubject $classSubject): void
-    {
-        DB::transaction(function () use ($classSubject) {
-            $classSubject->delete();
         });
     }
 }

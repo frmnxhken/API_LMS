@@ -25,16 +25,7 @@ class TeachingAssignmentController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $query = ClassSubject::query()->with(["teacher.user", "schoolClass", "subject"]);
-
-        if ($request->filled("school_class")) {
-            $query->where("school_class_id", $request->school_class);
-        }
-
-        if ($request->filled("subject")) {
-            $query->where("subject_id", $request->subject);
-        }
-
+        $query = $this->service->getTeachingAssignments($request);
         return TeachingAssignmentResource::collection($query->paginate(10));
     }
 
@@ -57,7 +48,7 @@ class TeachingAssignmentController extends Controller implements HasMiddleware
 
     public function destroy(ClassSubject $classSubject)
     {
-        $this->service->delete($classSubject);
+        $classSubject->delete();
         return response()->json(["message" => "success"]);
     }
 }

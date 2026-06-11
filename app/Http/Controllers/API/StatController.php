@@ -7,12 +7,9 @@ use App\Models\SchoolClass;
 use App\Models\StudentEnrollment;
 use App\Models\Subject;
 use App\Models\Teacher;
-use Illuminate\Http\Request;
 
 class StatController extends Controller
 {
-    public function statStudent() {}
-
     public function statAdmin()
     {
         $teacherTotal = Teacher::count();

@@ -13,11 +13,16 @@ class SubjectController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware("academicYearDraft", only: ["update", "destroy"]),
+            new Middleware("academicYear:draft", except: ["index", "list"]),
         ];
     }
 
     public function index()
+    {
+        return response()->json(Subject::get(), 200);
+    }
+
+    public function list()
     {
         return response()->json(Subject::get(), 200);
     }

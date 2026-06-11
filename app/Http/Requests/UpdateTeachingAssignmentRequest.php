@@ -27,7 +27,14 @@ class UpdateTeachingAssignmentRequest extends FormRequest
 
         return [
             'school_class_id' => ['required', 'exists:school_classes,id'],
-            'subject_id' => ['required', 'exists:subjects,id'],
+            'subject_id' => [
+                'required',
+                'exists:subjects,id',
+                Rule::unique('class_subjects')
+                    ->where(fn($query) => $query->where('school_class_id', $this->school_class_id))
+                    ->ignore($id),
+            ],
+
             'teacher_id' => [
                 'required',
                 'exists:teachers,id',
@@ -36,7 +43,8 @@ class UpdateTeachingAssignmentRequest extends FormRequest
                         fn($query) => $query
                             ->where('school_class_id', $this->school_class_id)
                             ->where('subject_id', $this->subject_id)
-                    )->ignore($id),
+                    )
+                    ->ignore($id),
             ],
         ];
     }

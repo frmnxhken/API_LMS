@@ -17,7 +17,7 @@ class TeachingAssignmentController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware("academicYearDraft", only: ["update", "destroy"]),
+            new Middleware("academicYear:draft", only: ["update", "destroy"]),
         ];
     }
 

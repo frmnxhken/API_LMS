@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\AcademicCalendar;
+use App\Models\AcademicYear;
 use App\Models\Student;
 use App\Models\Attendance;
 
@@ -19,7 +21,19 @@ class AttendanceReportService
 
     public function getTodayAttendance($request)
     {
+        $academicYear = AcademicYear::active();
+
+        if (!$academicYear || $academicYear->status !== 'active') {
+            return Attendance::query()->whereRaw('1 = 0');
+        }
+
         $date = $request->date ?? today();
+
+        $isSchoolDay = AcademicCalendar::whereDate('date', $date)->where('is_school_day', 1)->exists();
+
+        if (!$isSchoolDay) {
+            return Attendance::query()->whereRaw('1 = 0');
+        }
 
         $query = Student::with(['attendances' => fn($query) =>
         $query->whereDate('date', $date), 'user']);

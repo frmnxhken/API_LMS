@@ -32,13 +32,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/files/{path}', [FileStreamController::class, "stream"])->where('path', '.*');;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/academic-years/current', [AdminAcademicYearController::class, 'current']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user/change-password', [UserController::class, 'changePassword']);
     Route::post('/user/change-photo', [UserController::class, 'changePhoto']);
     /*
     | TEACHER + STUDENT
     */
-    Route::middleware('role:teacher,student')->group(function () {
+    Route::middleware(['role:teacher,student', 'academicYear:active'])->group(function () {
         Route::get('/class', [ClassSubjectController::class, 'index']);
         Route::middleware('memberClass')->group(function () {
             Route::prefix('/class/{id_class_subject}')->group(function () {
@@ -62,16 +63,17 @@ Route::middleware('auth:sanctum')->group(function () {
     /*
     | STUDENT
     */
-    Route::middleware('role:student')->group(function () {
+    Route::middleware(['role:student', 'academicYear:active'])->group(function () {
         Route::post('/class/{id_class_subject}/post/{id_post}/submission', [SubmissionController::class, "store"]);
         Route::get('/assignment', [AssignmentController::class, 'index']);
+        Route::get('/attendance', [AttendanceController::class, 'show']);
         Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
     });
 
     /*
     | TEACHER
     */
-    Route::middleware('role:teacher')->group(function () {
+    Route::middleware(['role:teacher', 'academicYear:active'])->group(function () {
         Route::delete('/file/{id_post}', [PostController::class, "deletePostFile"])->name('deletePostFile');
         Route::prefix('/class/{id_class_subject}')->group(function () {
             // MATERIAL MANAGE
@@ -124,12 +126,15 @@ Route::prefix("/admin")->group(function () {
     Route::get("/calendar", [AcademicCalendarController::class, 'index']);
     Route::get("/calendar/weekly", [AcademicCalendarController::class, 'weekly']);
     Route::put("/calendar/{academicCalendar}", [AcademicCalendarController::class, "update"]);
+    Route::get("/class/list", [SchoolClassController::class, "list"]);
     Route::apiResource("/class", SchoolClassController::class)->parameters(["class" => "schoolClass"]);
+    Route::get("/subject/list", [SubjectController::class, "list"]);
     Route::apiResource("/subject", SubjectController::class);
     Route::post("/student/import", [StudentController::class, "import"]);
     Route::get("/student/export", [StudentController::class, "export"]);
     Route::apiResource("/student", StudentController::class);
     Route::post("/teacher/import", [TeacherController::class, "import"]);
+    Route::get("/teacher/list", [TeacherController::class, "list"]);
     Route::get("/teacher/export", [TeacherController::class, "export"]);
     Route::apiResource("/teacher", TeacherController::class);
     Route::apiResource("/teaching-assignment", TeachingAssignmentController::class)->parameters([

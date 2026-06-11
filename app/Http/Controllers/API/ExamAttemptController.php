@@ -13,10 +13,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ExamAttemptController extends Controller
 {
-    public function index(
-        $id_class_subject,
-        ExamAssignment $exam
-    ) {
+    public function index($id_class_subject, ExamAssignment $exam)
+    {
         $user = Auth::user();
 
         return ExamAttempt::where([
@@ -110,11 +108,8 @@ class ExamAttemptController extends Controller
         ]);
     }
 
-    public function attempt(
-        Request $request,
-        $id_class_subject,
-        ExamAssignment $exam
-    ) {
+    public function attempt(Request $request, $id_class_subject, ExamAssignment $exam)
+    {
         $user = Auth::user();
 
         $attempt = ExamAttempt::where([

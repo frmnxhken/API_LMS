@@ -62,4 +62,13 @@ class AcademicYearController extends Controller
         $academicYear->update($request->validated());
         return response()->json(["message" => "success"]);
     }
+
+    public function current()
+    {
+        $academicYear = AcademicYear::active();
+
+        return response()->json([
+            'status' => $academicYear->status,
+        ]);
+    }
 }

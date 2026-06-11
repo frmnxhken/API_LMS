@@ -13,11 +13,16 @@ class SchoolClassController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware("academicYearDraft", only: ["update", "destroy"]),
+            new Middleware("academicYear:draft", except: ["index", "list", "show"]),
         ];
     }
 
     public function index()
+    {
+        return response()->json(SchoolClass::get());
+    }
+
+    public function list()
     {
         return response()->json(SchoolClass::get());
     }

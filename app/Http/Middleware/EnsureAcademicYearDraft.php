@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Str;
 
 class EnsureAcademicYearDraft
 {
@@ -18,9 +19,18 @@ class EnsureAcademicYearDraft
     {
         $academicYear = AcademicYear::active();
 
+        if (!$academicYear) {
+            return response()->json([
+                'code' => 'ACADEMIC_YEAR_NOT_FOUND',
+                'message' => 'Academic year not found',
+                'status' => null
+            ], 403);
+        }
+
         if (!$academicYear || $academicYear->status !== 'draft') {
             return response()->json([
-                'message' => 'Tahun ajaran tidak dapat diubah.'
+                'message' =>  Str::upper('ACADEMIC_YEAR_' . $academicYear->status),
+                'status'  => $academicYear->status ?? 'not_found'
             ], 403);
         }
 

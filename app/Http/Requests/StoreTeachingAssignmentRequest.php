@@ -25,16 +25,20 @@ class StoreTeachingAssignmentRequest extends FormRequest
     {
         return [
             'school_class_id' => ['required', 'exists:school_classes,id'],
-            'subject_id' => ['required', 'exists:subjects,id'],
+            'subject_id' => [
+                'required',
+                'exists:subjects,id',
+                Rule::unique('class_subjects')->where(function ($query) {
+                    return $query->where('school_class_id', $this->school_class_id);
+                }),
+            ],
             'teacher_id' => [
                 'required',
                 'exists:teachers,id',
-                Rule::unique('class_subjects')
-                    ->where(
-                        fn($query) => $query
-                            ->where('school_class_id', $this->school_class_id)
-                            ->where('subject_id', $this->subject_id)
-                    ),
+                Rule::unique('class_subjects')->where(function ($query) {
+                    return $query->where('school_class_id', $this->school_class_id)
+                        ->where('subject_id', $this->subject_id);
+                }),
             ],
         ];
     }

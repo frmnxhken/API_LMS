@@ -13,6 +13,7 @@ use App\Models\Grade;
 use App\Models\Post;
 use App\Models\Student;
 use App\Models\Submission;
+use App\Models\WeightSumScore;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -20,12 +21,7 @@ class GradeController extends Controller
 {
     public function index($id_class_subject)
     {
-        $weights = [
-            'assignment' => 0.2,
-            'daily' => 0.2,
-            'uts' => 0.3,
-            'uas' => 0.3,
-        ];
+        $weights = WeightSumScore::where("class_subject_id", $id_class_subject)->first();
 
         $grades = Grade::with('student.user')
             ->where('class_subject_id', $id_class_subject)
@@ -67,10 +63,10 @@ class GradeController extends Controller
             $uas = $totalUAS > 0
                 ? $grade->uas_score : 0;
             $grade->final_score =
-                ($assignmentAvg * $weights['assignment']) +
-                ($dailyAvg * $weights['daily']) +
-                ($uts * $weights['uts']) +
-                ($uas * $weights['uas']);
+                round(($assignmentAvg * $weights->assignment_weight) +
+                    ($dailyAvg * $weights->daily_weight) +
+                    ($uts * $weights->uts_weight) +
+                    ($uas * $weights->uas_weight), 2);
 
             $grade->assignment = $assignmentAvg;
             $grade->daily = $dailyAvg;
@@ -79,9 +75,11 @@ class GradeController extends Controller
             return $grade;
         });
 
+        $sortedGrades = $grades->sortByDesc('final_score')->values();
+
         return response()->json([
             'meta' => $classSubject,
-            'data' => GradeResource::collection($grades),
+            'data' => GradeResource::collection($sortedGrades),
         ]);
     }
 

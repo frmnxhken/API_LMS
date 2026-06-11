@@ -20,7 +20,7 @@ class StudentController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware("academicYearDraft", only: ["update", "destroy", "import"]),
+            new Middleware("academicYear:draft", except: ["index", "show", "export"]),
         ];
     }
 

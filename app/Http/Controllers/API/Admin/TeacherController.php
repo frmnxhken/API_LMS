@@ -18,7 +18,7 @@ class TeacherController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware("academicYearDraft", only: ["update", "destroy", "import"]),
+            new Middleware("academicYear:draft", except: ["index", "list", "export"]),
         ];
     }
 
@@ -28,6 +28,12 @@ class TeacherController extends Controller implements HasMiddleware
     {
         $teachers = $this->service->getTeachers($request);
         return TeacherResource::collection($teachers->paginate(10));
+    }
+
+    public function list(Request $request)
+    {
+        $teachers = $this->service->getTeachers($request);
+        return TeacherResource::collection($teachers->get());
     }
 
     public function store(StoreTeacherRequest $request)

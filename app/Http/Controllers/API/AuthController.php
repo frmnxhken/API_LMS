@@ -13,24 +13,29 @@ class AuthController extends Controller
     {
         $user = User::where('username', $request->username)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Username atau password salah'
-            ], 401);
-        }
+        $this->matchCredential($user, $request);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-
-        if ($user->role === 'teacher') {
-            $user->teacher;
-        } elseif ($user->role === 'student') {
-            $user->student;
-        }
-
         return response()->json([
             'token' => $token,
-            'user' => $user
+            'user' => $this->dataByRole($user)
         ]);
+    }
+
+    private function matchCredential($user, $request)
+    {
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            abort(401, 'Username atau password salah');
+        }
+    }
+
+    private function dataByRole($user)
+    {
+        return match ($user->role) {
+            'teacher' => $user->load('teacher'),
+            'student' => $user->load('student'),
+            default => $user,
+        };
     }
 }

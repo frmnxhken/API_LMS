@@ -39,7 +39,7 @@ class PostController extends Controller
 
     public function store($id_class_subject, PostRequest $request)
     {
-        $type = $request->route('type');
+        $type = $request->segment(4);
 
         $post = $this->service->create(
             $id_class_subject,
@@ -55,9 +55,7 @@ class PostController extends Controller
 
     public function update($id_class_subject, $id_post, PostRequest $request)
     {
-        $type = $request->route('type');
-
-        return response()->json($type);
+        $type = $request->segment(4);
 
         $post = $this->service->update(
             $id_class_subject,

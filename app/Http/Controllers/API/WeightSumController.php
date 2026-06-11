@@ -10,28 +10,38 @@ class WeightSumController extends Controller
 {
     public function show($id_class_subject)
     {
-        return response()->json(
-            WeightSumScore::where("class_subject_id", $id_class_subject)->first()
-        );
+        $weight = WeightSumScore::where('class_subject_id', $id_class_subject)->first();
+        return response()->json($weight);
     }
 
     public function update(WeightSumRequest $request, $id_class_subject)
     {
-        $total = $request->assignment_weight + $request->daily_weight + $request->uts_weight + $request->uas_weight;
+        $data = $request->validated();
+
+        $this->validateTotal($data);
+
+        $normalized = $this->normalizeWeights($data);
+        WeightSumScore::where('class_subject_id', $id_class_subject)->update($normalized);
+
+        return response()->json(['message' => 'success']);
+    }
+
+    private function validateTotal(array $data): void
+    {
+        $total = array_sum($data);
 
         if ($total !== 100) {
-            return response()->json(['message' => 'Total bobot harus berjumlah 100'], 422);
+            abort(422, 'Total bobot harus berjumlah 100');
         }
+    }
 
-        WeightSumScore::where('class_subject_id', $id_class_subject)->update([
-            'assignment_weight' => $request->assignment_weight / 100,
-            'daily_weight' => $request->daily_weight / 100,
-            'uts_weight' => $request->uts_weight / 100,
-            'uas_weight' => $request->uas_weight / 100,
-        ]);
-
-        return response()->json([
-            'message' => 'Bobot berhasil diperbarui',
-        ]);
+    private function normalizeWeights(array $data): array
+    {
+        return [
+            'assignment_weight' => $data['assignment_weight'] / 100,
+            'daily_weight'      => $data['daily_weight'] / 100,
+            'uts_weight'        => $data['uts_weight'] / 100,
+            'uas_weight'        => $data['uas_weight'] / 100,
+        ];
     }
 }

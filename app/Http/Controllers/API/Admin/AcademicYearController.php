@@ -67,11 +67,10 @@ class AcademicYearController extends Controller
 
     public function current()
     {
-        $academicYear = AcademicYear::active();
-        if (!$academicYear) return;
+        $academicYear = AcademicYear::where('is_active', true)->first();
 
         return response()->json([
-            'status' => $academicYear->status,
+            'status' => $academicYear?->status,
         ]);
     }
 }

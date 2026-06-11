@@ -13,9 +13,11 @@ class AcademicCalendarController extends Controller
     public function index()
     {
         $academicYear = AcademicYear::active();
+
         return response()->json([
-            "meta" => $academicYear,
-            "dates" => AcademicCalendar::where('academic_year_id', $academicYear->id)->get()
+            'meta' => $academicYear,
+            'dates' => $academicYear
+                ? AcademicCalendar::where('academic_year_id', $academicYear->id)->get() : [],
         ]);
     }
 

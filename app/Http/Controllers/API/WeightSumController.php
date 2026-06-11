@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\WeightSumRequest;
 use App\Models\WeightSumScore;
 
 class WeightSumController extends Controller
@@ -14,7 +15,7 @@ class WeightSumController extends Controller
         );
     }
 
-    public function update(WeightSumScore $request, $id_class_subject)
+    public function update(WeightSumRequest $request, $id_class_subject)
     {
         $total = $request->assignment_weight + $request->daily_weight + $request->uts_weight + $request->uas_weight;
 

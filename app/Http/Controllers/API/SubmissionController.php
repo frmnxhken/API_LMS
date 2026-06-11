@@ -20,8 +20,10 @@ class SubmissionController extends Controller
     {
         $post = Post::findOrFail($id_post);
 
-        if ($post->due && now()->greaterThan($post->due)) {
-            return response()->json(["message" => "Deadline"], 422);
+        if ($post->due && today()->gt($post->due)) {
+            return response()->json([
+                'message' => 'Deadline telah berakhir'
+            ], 422);
         }
 
         try {

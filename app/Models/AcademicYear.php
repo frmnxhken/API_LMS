@@ -14,7 +14,7 @@ class AcademicYear extends Model
 
     public static function active()
     {
-        return self::where('is_active', true)->firstOrFail();
+        return self::where('is_active', true)->first();
     }
 
     public function class_subjects()

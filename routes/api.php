@@ -137,10 +137,7 @@ Route::prefix("/admin")->group(function () {
     Route::get("/teacher/list", [TeacherController::class, "list"]);
     Route::get("/teacher/export", [TeacherController::class, "export"]);
     Route::apiResource("/teacher", TeacherController::class);
-    Route::apiResource("/teaching-assignment", TeachingAssignmentController::class)->parameters([
-        'teaching-assignment' => 'classSubject'
-    ]);
-
+    Route::apiResource("/teaching-assignment", TeachingAssignmentController::class)->parameters(['teaching-assignment' => 'classSubject']);
     Route::put('/attendance', [AttendanceController::class, 'upsertStatus']);
     Route::get('/attendance-report/summary', [AttendanceReportController::class, 'summary']);
     Route::get('/attendance-report/today', [AttendanceReportController::class, 'today']);

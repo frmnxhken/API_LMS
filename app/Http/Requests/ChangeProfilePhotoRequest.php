@@ -26,8 +26,15 @@ class ChangeProfilePhotoRequest extends FormRequest
             'photo' => [
                 'required',
                 'mimes:jpg,jpeg,png,webp',
-                'max:2048',
+                'max:1024',
             ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'photo.max' => 'Ukuran foto maksimal :max KB.',
         ];
     }
 }

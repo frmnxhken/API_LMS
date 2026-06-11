@@ -127,6 +127,9 @@ class GradeService
             $dailyAvg = $totals['daily']
                 ? $grade->daily_total_score / $totals['daily'] : 0;
 
+            $uts = $totals['uts'] > 0 ? $grade->uts_score : 0;
+            $uas = $totals['uas'] > 0 ? $grade->uas_score : 0;
+
             $grade->final_score = round(
                 ($assignmentAvg * $weights->assignment_weight) +
                     ($dailyAvg * $weights->daily_weight) +
@@ -137,8 +140,8 @@ class GradeService
 
             $grade->assignment = $assignmentAvg;
             $grade->daily = $dailyAvg;
-            $grade->uts = $grade->uts_score;
-            $grade->uas = $grade->uts_score;
+            $grade->uts = $uts;
+            $grade->uas = $uas;
 
             return $grade;
         });

@@ -6,125 +6,141 @@ use App\Models\Post;
 use App\Models\PostFile;
 use App\Models\Student;
 use App\Models\Submission;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Grade;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PostService
 {
-    public function detail(string $idClassSubject, string $idPost)
+    public function create($classId, $type, $data)
     {
-        $user = Auth::user();
-        $query = Post::where("class_subject_id", $idClassSubject);
+        $this->guardType($type);
 
-        if ($user->role === "student") {
-            $query->with([
-                "post_files",
-                "submissions" => function ($q) use ($user) {
-                    $q->where("student_id", $user->student->id);
-                },
-                "submissions.submission_files"
+        return DB::transaction(function () use ($classId, $type, $data) {
+            $post = Post::create([
+                'class_subject_id' => $classId,
+                'title'            => $data['title'],
+                'content'          => $data['content'],
+                'type'             => $type,
+                'due'              => $this->resolveDue($type, $data),
             ]);
-        } else {
-            $query->with(["post_files"]);
-        }
 
-        return $query->findOrFail($idPost);
-    }
-
-    public function create(array $data, string $idClassSubject)
-    {
-        $due = $data["type"] === "material" ? null : $data["due"];
-        $post = Post::create([
-            "title" => $data["title"],
-            "content" => $data["content"],
-            "type" => $data["type"],
-            "due" => $due,
-            "class_subject_id" => $idClassSubject
-        ]);
-
-        if (isset($data["files"])) {
-            $this->uploadFiles($post, $data["files"]);
-        }
-
-        if ($data["type"] === "assignment") {
-            $this->generateSubmission($post, $idClassSubject);
-        }
-
-        return $post;
-    }
-
-    public function update(Post $post, array $data)
-    {
-        $due = $post->type === "material" ? null : $data["due"];
-        $post->update([
-            "title" => $data["title"],
-            "content" => $data["content"],
-            "due" => $due,
-        ]);
-
-        if (isset($data["files"])) {
-            $this->uploadFiles($post, $data["files"]);
-        }
-
-        return $post;
-    }
-
-    public function delete(Post $post)
-    {
-        foreach ($post->post_files as $file) {
-            if (
-                $file->file_path &&
-                Storage::disk('public')->exists($file->file_path)
-            ) {
-                Storage::disk('public')->delete($file->file_path);
+            if (isset($data['files']) && is_array($data['files']) && count($data['files']) > 0) {
+                $this->uploadFiles($post, $data['files']);
             }
-        }
 
-        $post->post_files()->delete();
-        $post->delete();
+            if ($type === 'assignment') {
+                $this->generateSubmission($post, $classId);
+            }
+
+            return $post;
+        });
     }
 
-    protected function generateSubmission(Post $post, $idClassSubject): void
+    public function update($classId, $postId, $type, $data)
+    {
+        $this->guardType($type);
+
+        $post = Post::where('class_subject_id', $classId)->where('id', $postId)->firstOrFail();
+
+        return DB::transaction(function () use ($post, $type, $data) {
+            $post->update([
+                'title'     => $data['title'],
+                'content'   => $data['content'],
+                'due'       => $this->resolveDue($type, $data),
+            ]);
+
+            if (isset($data['files']) && is_array($data['files']) && count($data['files']) > 0) {
+                $this->uploadFiles($post, $data['files']);
+            }
+
+            return $post;
+        });
+    }
+
+    public function delete($classId, $postId)
+    {
+        $post = Post::with(['post_files', 'submissions'])
+            ->where('class_subject_id', $classId)->where('id', $postId)->firstOrFail();
+
+        DB::transaction(function () use ($post, $classId) {
+            $this->deleteUnusedFiles($post->post_files);
+
+            if ($post->type === 'assignment') {
+                foreach ($post->submissions as $submission) {
+                    if (method_exists($submission, 'submission_files')) {
+                        foreach ($submission->submission_files as $file) {
+                            if (Storage::exists($file->file_path)) {
+                                Storage::delete($file->file_path);
+                            }
+                            $file->delete();
+                        }
+                    }
+
+                    Grade::where('student_id', $submission->student_id)
+                        ->where('class_subject_id', $classId)
+                        ->decrement('assignment_total_score', $submission->score);
+                }
+            }
+
+            $post->submissions()->delete();
+            $post->delete();
+        });
+    }
+
+    private function uploadFiles(Post $post, array $files)
+    {
+        foreach ($files as $file) {
+            $path = $file->store('posts', 'public');
+            PostFile::create([
+                'post_id'       => $post->id,
+                'file_path'     => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'extension'     => $file->getClientOriginalExtension(),
+                'size'          => $file->getSize(),
+            ]);
+        }
+    }
+
+    private function deleteUnusedFiles($post_files)
+    {
+        foreach ($post_files as $file) {
+            if (Storage::exists($file->file_path)) {
+                Storage::delete($file->file_path);
+            }
+
+            $file->delete();
+        }
+    }
+
+    private function generateSubmission(Post $post, $classId)
     {
         $students = Student::whereHas(
             'enrollments.schoolClass.classSubjects',
-            function ($q) use ($idClassSubject) {
-                $q->where('class_subjects.id', $idClassSubject);
+            function ($q) use ($classId) {
+                $q->where('class_subjects.id', $classId);
             }
         )->get();
 
         foreach ($students as $student) {
             Submission::create([
-                "post_id" => $post->id,
-                "student_id" => $student->id,
-                "status" => "pending",
-                "score" => 0,
+                'post_id'    => $post->id,
+                'student_id' => $student->id,
+                'status'     => 'pending',
+                'score'      => 0,
             ]);
         }
     }
 
-    protected function uploadFiles(Post $post, array $files): void
+    private function resolveDue($type, $data)
     {
-        foreach ($files as $file) {
-            $path = $file->store('posts', 'public');
-            PostFile::create([
-                'post_id' => $post->id,
-                'file_path' => $path,
-                'original_name' => $file->getClientOriginalName(),
-                'extension' => $file->getClientOriginalExtension(),
-                'size' => $file->getSize(),
-            ]);
-        }
+        return $type === 'material' ? null : ($data['due'] ?? null);
     }
 
-    public function deleteFile(PostFile $file): void
+    private function guardType($type)
     {
-        if (
-            $file->file_path && Storage::exists($file->file_path)
-        ) {
-            Storage::delete($file->file_path);
+        if (!in_array($type, ['material', 'assignment'])) {
+            abort(403, 'Invalid post type');
         }
-
-        $file->delete();
     }
 }

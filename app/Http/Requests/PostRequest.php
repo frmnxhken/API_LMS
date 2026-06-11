@@ -22,32 +22,12 @@ class PostRequest extends FormRequest
      */
     public function rules()
     {
-
-        $type = $this->getPostType();
-
         return [
-            "title" => "required|string",
-            "content" => "required|string",
-            "due" => [
-                $type === "assignment"
-                    ? "required"
-                    : "nullable",
-                "date"
-            ],
-            "files" => "nullable|array",
-            "files.*" => "file|max:20480",
+            'title'     => 'required',
+            'content'   => 'required',
+            'due'       => 'required_if:type,assignment|date',
+            'files'     => 'nullable|array',
+            'files.*'   => 'file|max:10240',
         ];
-    }
-
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            "type" => $this->getPostType()
-        ]);
-    }
-
-    protected function getPostType()
-    {
-        return $this->segment(4);
     }
 }

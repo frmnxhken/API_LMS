@@ -5,23 +5,36 @@ namespace App\Exports;
 use App\Models\Grade;
 use App\Models\Post;
 use App\Models\ExamAssignment;
+use App\Models\WeightSumScore;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class GradeExport implements FromCollection, WithHeadings
+class GradeExport implements FromCollection, WithHeadings, WithStyles, WithEvents, ShouldAutoSize
 {
     public function __construct(
         private int $classSubjectId
     ) {}
 
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => [
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF4F81BD']],
+            ],
+        ];
+    }
+
     public function collection()
     {
-        $weights = [
-            'assignment' => 0.2,
-            'daily' => 0.2,
-            'uts' => 0.3,
-            'uas' => 0.3,
-        ];
+        $weights = WeightSumScore::where('class_subject_id', $this->classSubjectId)->first();
 
         $totalAssignment = Post::where(
             'class_subject_id',
@@ -77,10 +90,10 @@ class GradeExport implements FromCollection, WithHeadings
                     : 0;
 
                 $final =
-                    ($assignment * $weights['assignment']) +
-                    ($daily * $weights['daily']) +
-                    ($uts * $weights['uts']) +
-                    ($uas * $weights['uas']);
+                    ($assignment * $weights['assignment_weight']) +
+                    ($daily * $weights['daily_weight']) +
+                    ($uts * $weights['uts_weight']) +
+                    ($uas * $weights['uas_weight']);
 
                 return [
                     'No' => $index + 1,
@@ -106,6 +119,30 @@ class GradeExport implements FromCollection, WithHeadings
             'UTS',
             'UAS',
             'Nilai Akhir',
+        ];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet;
+                $lastRow = $sheet->getHighestRow();
+                $lastCol = $sheet->getHighestColumn();
+                $range = "A1:{$lastCol}{$lastRow}";
+                $sheet->getStyle($range)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color' => ['argb' => 'FF000000'],
+                        ],
+                    ],
+                    'alignment' => [
+                        'vertical'   => Alignment::VERTICAL_CENTER,
+                        'wrapText'   => false,
+                    ],
+                ]);
+            },
         ];
     }
 }

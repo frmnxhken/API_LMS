@@ -12,12 +12,12 @@ class QuestionController extends Controller
 {
     public function index(Exam $exam)
     {
+        $meta = $exam->load("subject");
+        $questions =  $exam->questions()->with("options")->get();
 
         return response()->json([
-            'meta' => $exam->load("subject"),
-            'questions' => $exam->questions()
-                ->with('options')
-                ->get()
+            "meta"      => $meta,
+            "questions" => $questions
         ]);
     }
 
@@ -26,77 +26,57 @@ class QuestionController extends Controller
         DB::transaction(function () use ($request, $exam) {
             foreach ($request->questions as $questionData) {
                 $question = $exam->questions()->create([
-                    'question' => $questionData['question']
+                    "question" => $questionData["question"]
                 ]);
 
-                foreach (
-                    $questionData['options']
-                    as $optionData
-                ) {
-                    $question->options()->create([
-                        'option' => $optionData['option'],
-                        'is_correct' => $optionData['is_correct'],
-                    ]);
-                }
+                $question->options()->createMany(
+                    array_map(fn($opt) => [
+                        "option"     => $opt["option"],
+                        "is_correct" => $opt["is_correct"],
+                    ], $questionData["options"])
+                );
             }
         });
 
-        return response()->json([
-            'message' => 'Questions created'
-        ]);
+        return response()->json(["message" => "success"]);
     }
 
     public function update(Request $request, Question $question)
     {
         DB::transaction(function () use ($request, $question) {
 
-            $question->update([
-                'question' => $request->question
-            ]);
+            $question->update(["question" => $request->question]);
 
             $existingOptionIds = [];
 
             foreach ($request->options as $optionData) {
-
-                if (isset($optionData['id'])) {
-
-                    $option = $question
-                        ->options()
-                        ->findOrFail($optionData['id']);
-
+                if (isset($optionData["id"])) {
+                    $option = $question->options()->findOrFail($optionData["id"]);
                     $option->update([
-                        'option' => $optionData['option'],
-                        'is_correct' => $optionData['is_correct'],
+                        "option"     => $optionData["option"],
+                        "is_correct" => $optionData["is_correct"],
                     ]);
 
                     $existingOptionIds[] = $option->id;
                 } else {
-
                     $option = $question->options()->create([
-                        'option' => $optionData['option'],
-                        'is_correct' => $optionData['is_correct'],
+                        "option"     => $optionData["option"],
+                        "is_correct" => $optionData["is_correct"],
                     ]);
 
                     $existingOptionIds[] = $option->id;
                 }
             }
 
-            $question->options()
-                ->whereNotIn('id', $existingOptionIds)
-                ->delete();
+            $question->options()->whereNotIn("id", $existingOptionIds)->delete();
         });
 
-        return response()->json([
-            'message' => 'Question updated'
-        ]);
+        return response()->json(["message" => "success"]);
     }
 
     public function destroy(Question $question)
     {
         $question->delete();
-
-        return response()->json([
-            'message' => 'Question deleted'
-        ]);
+        return response()->json(["message" => "success"]);
     }
 }

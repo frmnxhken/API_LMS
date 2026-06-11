@@ -7,12 +7,14 @@ use App\Http\Requests\AcademicYearRequest;
 use App\Http\Requests\AcademicYearStatusRequest;
 use App\Models\AcademicYear;
 use App\Services\AcademicCalendarService;
+use App\Services\AcademicYearService;
 use Illuminate\Support\Facades\DB;
 
 class AcademicYearController extends Controller
 {
     public function __construct(
-        protected AcademicCalendarService $calendarService
+        protected AcademicCalendarService $calendarService,
+        protected AcademicYearService $academicService
     ) {}
 
     public function index()
@@ -23,7 +25,7 @@ class AcademicYearController extends Controller
     public function store(AcademicYearRequest $request)
     {
         DB::transaction(function () use ($request) {
-            $academicYear = AcademicYear::create($request->validated());
+            $academicYear = $this->academicService->store($request);
             $this->calendarService->generate($academicYear);
         });
 
@@ -37,7 +39,11 @@ class AcademicYearController extends Controller
 
     public function update(AcademicYearRequest $request, AcademicYear $academicYear)
     {
-        $academicYear->update($request->validated());
+        DB::transaction(function () use ($request, $academicYear) {
+            $academicYear->update($request->validated());
+            $this->calendarService->generate($academicYear);
+        });
+
         return response()->json(["message" => "success"]);
     }
 
@@ -49,11 +55,7 @@ class AcademicYearController extends Controller
 
     public function activate(AcademicYear $academicYear)
     {
-        DB::transaction(function () use ($academicYear) {
-            AcademicYear::query()->update(["is_active" => 0]);
-            $academicYear->update(["is_active" => 1,]);
-        });
-
+        $this->academicService->setActivate($academicYear);
         return response()->json(["message" => "success"]);
     }
 
@@ -66,6 +68,7 @@ class AcademicYearController extends Controller
     public function current()
     {
         $academicYear = AcademicYear::active();
+        if (!$academicYear) return;
 
         return response()->json([
             'status' => $academicYear->status,

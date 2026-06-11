@@ -21,28 +21,23 @@ class AcademicYearRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules()
     {
-        $id = $this->route('academic_year')?->id;
+        $id = $this->route('academicYear')?->id;
 
         return [
             'start' => [
                 'required',
                 'date',
-                'lte:end',
+                Rule::unique('academic_years', 'start')->where(function ($query) {
+                    return $query->whereYear('start', date('Y', strtotime($this->start)));
+                })->ignore($id),
             ],
-
             'end' => [
                 'required',
                 'date',
-                'gte:start',
+                'after:start',
             ],
-
-            Rule::unique('academic_years')->where(
-                fn($q) => $q
-                    ->where('start', $this->start)
-                    ->where('end', $this->end)
-            )->ignore($id),
         ];
     }
 }

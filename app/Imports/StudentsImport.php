@@ -15,6 +15,7 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 class StudentsImport implements ToModel, WithHeadingRow, WithValidation
 {
     protected $schoolClassId;
+    protected GradeService $gradeService;
 
     public function __construct($schoolClassId)
     {

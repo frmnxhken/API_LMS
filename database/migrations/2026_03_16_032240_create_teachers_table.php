@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->string('nip', 20)->unique();
-            $table->string('phone', 13);
+            $table->string('phone', 13)->nullable();
             $table->timestamps();
         });
     }

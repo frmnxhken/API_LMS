@@ -38,7 +38,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithValidation
         return [
             '*.nip' => 'required|unique:teachers,nip',
             '*.nama' => 'required',
-            '*.telepon' => 'required|max:13',
+            '*.telepon' => 'max:13',
         ];
     }
 }

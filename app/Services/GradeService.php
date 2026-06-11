@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Resources\GradeResource;
 use App\Http\Resources\StudentResource;
 use App\Models\ClassSubject;
 use App\Models\ExamAssignment;
@@ -62,10 +63,11 @@ class GradeService
         $grades = Grade::with('student.user')->where('class_subject_id', $classSubjectId)->get();
         $totals = $this->getTotals($classSubjectId);
         $grades = $this->calculateFinalScores($grades, $weights, $totals);
+        $sortedGrades = $grades->sortByDesc('final_score')->values();
 
         return [
             'meta' => $classSubject,
-            'data' => $grades->sortByDesc('final_score')->values(),
+            'data' => GradeResource::collection($sortedGrades),
         ];
     }
 
@@ -132,6 +134,11 @@ class GradeService
                     ($grade->uas_score * $weights->uas_weight),
                 2
             );
+
+            $grade->assignment = $assignmentAvg;
+            $grade->daily = $dailyAvg;
+            $grade->uts = $grade->uts_score;
+            $grade->uas = $grade->uts_score;
 
             return $grade;
         });

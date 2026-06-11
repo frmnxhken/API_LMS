@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\ChangeProfilePhotoRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -14,12 +13,9 @@ class UserController extends Controller
 {
     public function changePassword(ChangePasswordRequest $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
-        if (!Hash::check(
-            $request->current_password,
-            $user->password
-        )) {
+        if (!Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'errors' => [
                     'current_password' => ["Password saat ini tidak sesuai"]
@@ -27,39 +23,43 @@ class UserController extends Controller
             ], 422);
         }
 
-        $user->update([
-            'password' => Hash::make($request->password),
-        ]);
+        $user->update(['password' => Hash::make($request->password)]);
 
-        return response()->json([
-            'message' => 'Password berhasil diubah',
-        ]);
+        return response()->json(['message' => 'success']);
     }
 
     public function changePhoto(ChangeProfilePhotoRequest $request)
     {
-        $user = Auth::user();
-
-        if ($user->photo && File::exists(public_path($user->photo))) {
-            File::delete(public_path($user->photo));
-        }
-
+        $user = $request->user();
         $file = $request->file('photo');
 
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $this->deleteOldPhoto($user->photo);
 
-        $file->move(
-            public_path('profiles'),
-            $filename
-        );
-
-        $user->update([
-            'photo' => $filename,
-        ]);
+        $filename = $this->storePhoto($file);
+        $user->update(['photo' => $filename]);
 
         return response()->json([
             'message' => 'success',
-            'photo_url' =>  $filename,
+            'photo_url' => $filename,
         ]);
+    }
+
+    private function storePhoto($file): string
+    {
+        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('profiles'), $filename);
+
+        return $filename;
+    }
+
+    private function deleteOldPhoto(?string $photo): void
+    {
+        if (!$photo) return;
+
+        $path = public_path('profiles/' . $photo);
+
+        if (File::exists($path)) {
+            File::delete($path);
+        }
     }
 }

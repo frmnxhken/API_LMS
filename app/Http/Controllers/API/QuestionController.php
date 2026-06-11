@@ -12,7 +12,9 @@ class QuestionController extends Controller
 {
     public function index(Exam $exam)
     {
+
         return response()->json([
+            'meta' => $exam->load("subject"),
             'questions' => $exam->questions()
                 ->with('options')
                 ->get()

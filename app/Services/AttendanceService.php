@@ -16,9 +16,13 @@ class AttendanceService
     {
         $today = today();
         $student = Auth::user()->student;
+        $meta = AcademicCalendar::whereDate('date', $today)->first();
+        $meta["latitude"] = config('attendance.latitude');
+        $meta["longitude"] = config('attendance.longitude');
+        $meta["radius"] = config('attendance.radius');
 
         return [
-            "meta" => AcademicCalendar::whereDate('date', $today)->first(),
+            "meta" => $meta,
             "data" => Attendance::where("student_id", $student->id)
                 ->latest()
                 ->limit(5)

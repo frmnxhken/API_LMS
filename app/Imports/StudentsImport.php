@@ -31,7 +31,7 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation
             $user = User::create([
                 'name'     => $row['nama'],
                 'username' => $username,
-                'password' => Hash::make('tes_123'),
+                'password' => Hash::make($row['nis']),
                 'role'     => 'student',
                 'photo'    => 'default.png'
             ]);

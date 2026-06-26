@@ -22,8 +22,10 @@ class ExamRequest extends FormRequest
      */
     public function rules(): array
     {
+        $examId = $this->route('exam');
+
         return [
-            "title"      => "required|unique:exams,title",
+            "title"      => "required|unique:exams,title," . $examId,
             "subject_id" => "required",
             "duration"   => "required",
             "type"       => "required",

@@ -31,7 +31,7 @@ class TeacherService
             $user = User::create([
                 'name' => $data['name'],
                 'username' => $data['nip'],
-                'password' => Hash::make($data['password']),
+                'password' => Hash::make($data['nip']),
                 'photo' => 'default.png',
                 'role' => 'teacher',
             ]);
@@ -50,11 +50,6 @@ class TeacherService
                 'name' => $data['name'],
                 'username' => $data['nip'],
             ];
-
-            if (!empty($data['password'])) {
-                $payload['password'] =
-                    Hash::make($data['password']);
-            }
 
             $teacher->user->update($payload);
             $teacher->update([

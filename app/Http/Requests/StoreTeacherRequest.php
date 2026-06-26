@@ -25,8 +25,7 @@ class StoreTeacherRequest extends FormRequest
         return [
             'nip' => ['required', 'unique:teachers,nip'],
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'max:13'],
-            'password' => ['required', 'min:6'],
+            'phone' => ['max:13'],
         ];
     }
 }

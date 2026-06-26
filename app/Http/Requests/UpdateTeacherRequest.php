@@ -32,8 +32,7 @@ class UpdateTeacherRequest extends FormRequest
                     ->ignore($teacher?->id)
             ],
             'name' => ['required'],
-            'phone' => ['required', 'max:13'],
-            'password' => ['nullable', 'min:6'],
+            'phone' => ['max:13'],
         ];
     }
 }

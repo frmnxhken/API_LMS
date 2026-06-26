@@ -12,6 +12,7 @@ use App\Services\TeacherService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Hash;
 
 class TeacherController extends Controller implements HasMiddleware
 {
@@ -73,6 +74,12 @@ class TeacherController extends Controller implements HasMiddleware
 
             return response()->json(["errors" => $errors], 422);
         }
+    }
+
+    public function resetPassword(Teacher $teacher)
+    {
+        $teacher->user->update(["password" => Hash::make($teacher->nip)]);
+        return response()->json(["message" => "Password berhasil direset."], 201);
     }
 
     public function export()

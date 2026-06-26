@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 class StudentService
@@ -43,18 +44,33 @@ class StudentService
     public function create(array $data): Student
     {
         return DB::transaction(function () use ($data) {
-            $firstName = Str::of($data['name'])->before(' ')->lower();
-            $username = "{$firstName}_{$data['nis']}";
+            $academicYearId = AcademicYear::activeId();
+            $student = Student::where('nis', $data['nis'])->first();
 
-            $user = User::create([
-                'name' => $data['name'],
-                'username' => $username,
-                'password' => Hash::make($data['password']),
-                'photo' => 'default.png',
-                'role' => 'student',
-            ]);
+            if (!$student) {
 
-            $student = $user->student()->create(['nis' => $data['nis'],]);
+                $firstName = Str::of($data['name'])->before(' ')->lower();
+                $username = "{$firstName}_{$data['nis']}";
+
+                $user = User::create([
+                    'name' => $data['name'],
+                    'username' => $username,
+                    'password' => Hash::make($data['nis']),
+                    'photo' => 'default.png',
+                    'role' => 'student',
+                ]);
+
+                $student = $user->student()->create(['nis' => $data['nis'],]);
+            }
+
+            $exists = $student->enrollments()->where('academic_year_id', $academicYearId)->exists();
+
+            if ($exists) {
+                throw ValidationException::withMessages([
+                    'nis' => 'Siswa sudah terdaftar pada tahun akademik aktif.',
+                ]);
+            }
+
             $enrollment = $student->enrollments()->create([
                 'school_class_id' => $data['school_class_id'],
                 'academic_year_id' => AcademicYear::activeId(),
@@ -80,10 +96,6 @@ class StudentService
                 'username' => "{$firstName}_{$data['nis']}",
             ];
 
-            if (!empty($data['password'])) {
-                $payload['password'] = Hash::make($data['password']);
-            }
-
             $user->update($payload);
             $student->update(['nis' => $data['nis']]);
 
@@ -95,13 +107,11 @@ class StudentService
             ]);
 
             if ($oldClassId !== (int) $data['school_class_id']) {
-                if ($oldClassId !== (int) $data['school_class_id']) {
-                    Grade::where('student_id', $student->id)->delete();
-                    $this->gradeService->generateForStudent(
-                        $student->id,
-                        $data['school_class_id']
-                    );
-                }
+                Grade::where('student_id', $student->id)->delete();
+                $this->gradeService->generateForStudent(
+                    $student->id,
+                    $data['school_class_id']
+                );
             }
         });
     }

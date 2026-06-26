@@ -14,6 +14,7 @@ use App\Services\StudentService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Hash;
 
 class StudentController extends Controller implements HasMiddleware
 {
@@ -34,7 +35,7 @@ class StudentController extends Controller implements HasMiddleware
 
     public function store(StoreStudentRequest $request)
     {
-        $student = $this->service->create($request->validated());
+        $this->service->create($request->validated());
         return response()->json(["message" => "success"], 201);
     }
 
@@ -72,6 +73,12 @@ class StudentController extends Controller implements HasMiddleware
         } catch (\Throwable $e) {
             return response()->json(["message" => "Terjadi kesalahan saat import file."], 500);
         }
+    }
+
+    public function resetPassword(Student $student)
+    {
+        $student->user->update(["password" => Hash::make($student->nis)]);
+        return response()->json(["message" => "Password berhasil direset."], 201);
     }
 
     public function export(ExportStudentRequest $request)

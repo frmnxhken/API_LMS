@@ -132,6 +132,7 @@ Route::prefix("/admin")->group(function () {
     Route::apiResource("/subject", SubjectController::class);
     Route::post("/student/import", [StudentController::class, "import"]);
     Route::get("/student/export", [StudentController::class, "export"]);
+    Route::post("/student/{student}/reset-password", [StudentController::class, "resetPassword"]);
     Route::apiResource("/student", StudentController::class);
     Route::post("/teacher/import", [TeacherController::class, "import"]);
     Route::get("/teacher/list", [TeacherController::class, "list"]);

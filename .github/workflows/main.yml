@@ -10,19 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.2
-
-      - name: Install dependencies
-        run: composer install --no-dev --optimize-autoloader
-
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USER }}
@@ -30,3 +20,14 @@ jobs:
           port: 21
           local-dir: ./
           server-dir: /public_html/backend/
+          exclude: |
+            **/.git*
+            **/.github*
+            **/node_modules/**
+            **/vendor/**
+            **/.env
+            **/tests/**
+            **/public/storage/**
+            **/public/profiles/**
+            **/app/public/**
+            **/uploads/**

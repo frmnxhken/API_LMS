@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 
 class TeacherService
 {
@@ -28,9 +29,12 @@ class TeacherService
     public function create(array $data): Teacher
     {
         return DB::transaction(function () use ($data) {
+            $firstName = Str::of($data['name'])->before(' ')->lower();
+            $username  = "{$firstName}_{$data['nip']}";
+
             $user = User::create([
                 'name' => $data['name'],
-                'username' => $data['nip'],
+                'username' => $username,
                 'password' => Hash::make($data['nip']),
                 'photo' => 'default.png',
                 'role' => 'teacher',
@@ -46,9 +50,12 @@ class TeacherService
     public function update(Teacher $teacher, array $data): void
     {
         DB::transaction(function () use ($teacher, $data) {
+            $firstName = Str::of($data['name'])->before(' ')->lower();
+            $username  = "{$firstName}_{$data['nip']}";
+
             $payload = [
                 'name' => $data['name'],
-                'username' => $data['nip'],
+                'username' => $username,
             ];
 
             $teacher->user->update($payload);

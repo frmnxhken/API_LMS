@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.FTP_PASS }}
           port: 21
           local-dir: ./
-          server-dir: /public_html/backend/
+          server-dir: /
           exclude: |
             **/.git*
             **/.github*

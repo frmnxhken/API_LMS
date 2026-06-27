@@ -27,7 +27,8 @@ jobs:
             **/vendor/**
             **/.env
             **/tests/**
+            **/storage/**
+            **/bootstrap/cache/**
             **/public/storage/**
             **/public/profiles/**
-            **/app/public/**
             **/uploads/**

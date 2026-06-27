@@ -3,7 +3,7 @@ name: Deploy Laravel via FTP
 on:
   push:
     branches:
-      - main
+      - deployment
 
 jobs:
   deploy:

@@ -72,6 +72,7 @@ class ExamAttemptService
 
     public function startAttempt($exam)
     {
+        $this->validateExamWindow($exam);
         $attempt = $this->getAttempt($exam);
 
         if (!$attempt->started_at) {
@@ -164,8 +165,8 @@ class ExamAttemptService
 
     private function validateExamWindow($exam): void
     {
-        if (now()->lt($exam->start_time)) abort(403, 'Not started');
-        if (now()->gt($exam->end_time)) abort(403, 'Ended');
+        if (now()->lt($exam->start_time)) abort(403, 'Belum dimulai');
+        if (now()->gt($exam->end_time)) abort(403, 'Berakhir');
     }
 
     private function validateAttempt($attempt): void

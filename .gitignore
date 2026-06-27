@@ -16,6 +16,9 @@
 /public/build
 /public/hot
 /public/storage
+/public/profiles
+/public/docs
+/config/scribe.php
 /storage/*.key
 /storage/pail
 /vendor
@@ -23,3 +26,4 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 todo.txt
+/.scribe

@@ -82,9 +82,6 @@ class PostController extends Controller
         ]);
     }
 
-    protected function generateSubmission(Post $post, $id_class_subject) {}
-
-
     public function deletePostFile($id_file)
     {
         $file = PostFile::findOrFail($id_file);

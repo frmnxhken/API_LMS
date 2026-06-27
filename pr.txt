@@ -1,2 +1,0 @@
-1. Tahun akademik ketika di update ga re roll kalender generatenya
-2. Tahun ga boleh sama atau date sama

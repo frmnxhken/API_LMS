@@ -13,12 +13,8 @@ return new class extends Migration
     {
         Schema::create('exam_attempts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exam_assignment_id')
-                ->constrained()
-                ->cascadeOnDelete();
-            $table->foreignId('student_id')
-                ->constrained('users')
-                ->cascadeOnDelete();
+            $table->foreignId('exam_assignment_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->decimal('score', 5, 2)->default(0);

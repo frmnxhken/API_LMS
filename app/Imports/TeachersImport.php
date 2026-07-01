@@ -28,7 +28,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithValidation
 
             return $user->teacher()->create([
                 'nip' => $row['nip'],
-                'phone' => $row['telepon'],
+                'phone' => $row['telepon'] ?? "",
             ]);
         });
     }
@@ -38,7 +38,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithValidation
         return [
             '*.nip' => 'required|unique:teachers,nip',
             '*.nama' => 'required',
-            '*.telepon' => 'max:13',
+            '*.telepon' => 'nullable|max:13',
         ];
     }
 }

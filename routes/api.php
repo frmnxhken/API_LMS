@@ -11,6 +11,7 @@ use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\PostController;
 use App\Http\Controllers\API\SubmissionController;
 use App\Http\Controllers\API\Admin\SchoolClassController;
+use App\Http\Controllers\API\Admin\SettingController;
 use App\Http\Controllers\API\Admin\StudentController;
 use App\Http\Controllers\API\Admin\SubjectController;
 use App\Http\Controllers\API\Admin\TeacherController;
@@ -145,4 +146,6 @@ Route::prefix("/admin")->group(function () {
     Route::get('/attendance-report/today', [AttendanceReportController::class, 'today']);
     Route::get('/attendance-report/history', [AttendanceReportController::class, 'history']);
     Route::post('/attendance-report/export', [AttendanceReportController::class, 'export']);
+    Route::get('/setting', [SettingController::class, 'show']);
+    Route::post('/setting', [SettingController::class, 'upsert']);
 });

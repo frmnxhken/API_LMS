@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AcademicCalendar;
 use App\Models\AcademicYear;
 use App\Models\Attendance;
+use App\Models\Setting;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -16,10 +17,14 @@ class AttendanceService
     {
         $today = today();
         $student = Auth::user()->student;
+        $setting = Setting::first()->makeHidden('id');;
         $meta = AcademicCalendar::whereDate('date', $today)->first();
-        $meta["latitude"] = config('attendance.latitude');
-        $meta["longitude"] = config('attendance.longitude');
-        $meta["radius"] = config('attendance.radius');
+        $meta["latitude"] = $setting->latitude;
+        $meta["longitude"] = $setting->longitude;
+        $meta["radius"] = $setting->radius;
+        $meta["open_time"] = $setting->open_time;
+        $meta["start_time"] = $setting->start_time;
+        $meta["late_time"] = $setting->late_time;
 
         return [
             "meta" => $meta,
@@ -32,6 +37,7 @@ class AttendanceService
 
     public function checkIn(array $data)
     {
+        $setting = Setting::first();
         $student = Auth::user()->student;
         $today = today();
         $now = now();
@@ -40,9 +46,9 @@ class AttendanceService
         $this->ensureNotCheckedIn($student->id, $today);
         $this->ensureWithinRadius($data['latitude'], $data['longitude']);
 
-        $start = Carbon::createFromTimeString('05:00:00');
-        $lateLimit = Carbon::createFromTimeString('07:00:00');
-        $cutOff = Carbon::createFromTimeString('08:00:00');
+        $start = $setting->open_time;
+        $lateLimit = $setting->start_time;
+        $cutOff = $setting->late_time;
 
         if ($now->lt($start)) {
             abort(422, 'Absen belum dibuka');

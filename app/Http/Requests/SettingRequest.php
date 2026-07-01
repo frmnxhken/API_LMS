@@ -26,7 +26,9 @@ class SettingRequest extends FormRequest
             'latitude'   => 'required|numeric',
             'longitude'  => 'required|numeric',
             'radius'     => 'required|integer|min:1',
-            'start_time' => 'required'
+            'open_time'  => 'required',
+            'start_time' => 'required',
+            'late_time'  => 'required',
         ];
     }
 }

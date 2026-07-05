@@ -32,8 +32,6 @@ class UpdateStudentRequest extends FormRequest
                     ->ignore($student?->id)
             ],
             'name' => ['required', 'string', 'max:255'],
-            'password' => ['nullable', 'min:6'],
-            'school_class_id' => ['required', 'exists:school_classes,id'],
         ];
     }
 }

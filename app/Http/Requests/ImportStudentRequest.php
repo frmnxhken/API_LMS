@@ -24,7 +24,6 @@ class ImportStudentRequest extends FormRequest
     {
         return [
             'file' => ['required', 'mimes:xlsx,xls,csv', 'max:2048'],
-            'school_class_id' => ['required', 'exists:school_classes,id'],
         ];
     }
 }

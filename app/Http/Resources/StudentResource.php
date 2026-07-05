@@ -20,10 +20,6 @@ class StudentResource extends JsonResource
             "name" => $this->user->name,
             "username" => $this->user->username,
             "photo" => $this->user->photo,
-            'school_class_id' => $this->enrollments[0]->schoolClass->id,
-            "level" => $this->enrollments[0]->schoolClass->level,
-            "major" => $this->enrollments[0]->schoolClass->major,
-            "section" => $this->enrollments[0]->schoolClass->section,
         ];
     }
 }

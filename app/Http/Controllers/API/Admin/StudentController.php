@@ -60,7 +60,7 @@ class StudentController extends Controller implements HasMiddleware
     public function import(ImportStudentRequest $request)
     {
         try {
-            $this->service->import($request->file("file"), $request->school_class_id);
+            $this->service->import($request->file("file"));
             return response()->json(["message" => "Success"]);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $errors = [];
@@ -71,7 +71,7 @@ class StudentController extends Controller implements HasMiddleware
 
             return response()->json(["errors" => $errors], 422);
         } catch (\Throwable $e) {
-            return response()->json(["message" => "Terjadi kesalahan saat import file."], 500);
+            return response()->json(["message" => "Terjadi kesalahan saat import file: " . $e], 500);
         }
     }
 

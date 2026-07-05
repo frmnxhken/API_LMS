@@ -13,6 +13,7 @@ use App\Http\Controllers\API\SubmissionController;
 use App\Http\Controllers\API\Admin\SchoolClassController;
 use App\Http\Controllers\API\Admin\SettingController;
 use App\Http\Controllers\API\Admin\StudentController;
+use App\Http\Controllers\API\Admin\StudentEnrollmentController;
 use App\Http\Controllers\API\Admin\SubjectController;
 use App\Http\Controllers\API\Admin\TeacherController;
 use App\Http\Controllers\API\Admin\TeachingAssignmentController;
@@ -138,6 +139,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get("/student/export", [StudentController::class, "export"]);
             Route::post("/student/{student}/reset-password", [StudentController::class, "resetPassword"]);
             Route::apiResource("/student", StudentController::class);
+            Route::apiResource('student-enrollment', StudentEnrollmentController::class);
             Route::post("/teacher/import", [TeacherController::class, "import"]);
             Route::get("/teacher/list", [TeacherController::class, "list"]);
             Route::get("/teacher/export", [TeacherController::class, "export"]);

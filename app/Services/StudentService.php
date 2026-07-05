@@ -4,33 +4,18 @@ namespace App\Services;
 
 use App\Exports\StudentsExport;
 use App\Imports\StudentsImport;
-use App\Models\AcademicYear;
-use App\Models\Grade;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 class StudentService
 {
-    public function __construct(
-        private GradeService $gradeService
-    ) {}
-
     public function getStudents($request)
     {
-        $query = Student::query()
-            ->whereHas("enrollments")
-            ->with(["user", "enrollments.schoolClass"]);
-
-        if ($request->filled("filter")) {
-            $query->whereHas("enrollments", function ($q) use ($request) {
-                $q->where("school_class_id", $request->filter);
-            });
-        }
+        $query = Student::query()->with(["user"]);
 
         if ($request->filled("search")) {
             $query->whereHas("user", function ($q) use ($request) {
@@ -44,7 +29,6 @@ class StudentService
     public function create(array $data): Student
     {
         return DB::transaction(function () use ($data) {
-            $academicYearId = AcademicYear::activeId();
             $student = Student::where('nis', $data['nis'])->first();
 
             if (!$student) {
@@ -63,24 +47,6 @@ class StudentService
                 $student = $user->student()->create(['nis' => $data['nis'],]);
             }
 
-            $exists = $student->enrollments()->where('academic_year_id', $academicYearId)->exists();
-
-            if ($exists) {
-                throw ValidationException::withMessages([
-                    'nis' => 'Siswa sudah terdaftar pada tahun akademik aktif.',
-                ]);
-            }
-
-            $enrollment = $student->enrollments()->create([
-                'school_class_id' => $data['school_class_id'],
-                'academic_year_id' => AcademicYear::activeId(),
-            ]);
-
-            $this->gradeService->generateForStudent(
-                $student->id,
-                $enrollment->school_class_id
-            );
-
             return $student;
         });
     }
@@ -98,21 +64,6 @@ class StudentService
 
             $user->update($payload);
             $student->update(['nis' => $data['nis']]);
-
-            $enrollment = $student->enrollments()->firstOrFail();
-            $oldClassId = $enrollment->school_class_id;
-
-            $enrollment->update([
-                'school_class_id' => $data['school_class_id']
-            ]);
-
-            if ($oldClassId !== (int) $data['school_class_id']) {
-                Grade::where('student_id', $student->id)->delete();
-                $this->gradeService->generateForStudent(
-                    $student->id,
-                    $data['school_class_id']
-                );
-            }
         });
     }
 
@@ -123,9 +74,9 @@ class StudentService
         });
     }
 
-    public function import($file, int $schoolClassId): void
+    public function import($file): void
     {
-        Excel::import(new StudentsImport($schoolClassId), $file);
+        Excel::import(new StudentsImport(), $file);
     }
 
     public function export($schoolClassId = null)

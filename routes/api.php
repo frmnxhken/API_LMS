@@ -69,6 +69,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/assignment', [AssignmentController::class, 'index']);
         Route::get('/attendance', [AttendanceController::class, 'show']);
         Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
+        Route::get('/grade/history', [GradeController::class, 'history']);
+        Route::get('/grade/{id_class_subject}', [GradeController::class, 'historySubject']);
     });
 
     /*
@@ -117,35 +119,38 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/submission/{id_file}/download')->name('submissionDownload');
     });
-});
 
-Route::prefix("/admin")->group(function () {
-    Route::get("/stat", [StatController::class, "statAdmin"]);
-    Route::put('/academic/{academicYear}/status', [AdminAcademicYearController::class, 'handleStatus']);
-    Route::put("/academic/{academicYear}/activate", [AdminAcademicYearController::class, 'activate']);
-    Route::apiResource("/academic", AdminAcademicYearController::class)->parameters(["academic" => "academicYear"]);
-    Route::get("/calendar", [AcademicCalendarController::class, 'index']);
-    Route::get("/calendar/weekly", [AcademicCalendarController::class, 'weekly']);
-    Route::put("/calendar/{academicCalendar}", [AcademicCalendarController::class, "update"]);
-    Route::get("/class/list", [SchoolClassController::class, "list"]);
-    Route::apiResource("/class", SchoolClassController::class)->parameters(["class" => "schoolClass"]);
-    Route::get("/subject/list", [SubjectController::class, "list"]);
-    Route::apiResource("/subject", SubjectController::class);
-    Route::post("/student/import", [StudentController::class, "import"]);
-    Route::get("/student/export", [StudentController::class, "export"]);
-    Route::post("/student/{student}/reset-password", [StudentController::class, "resetPassword"]);
-    Route::apiResource("/student", StudentController::class);
-    Route::post("/teacher/import", [TeacherController::class, "import"]);
-    Route::get("/teacher/list", [TeacherController::class, "list"]);
-    Route::get("/teacher/export", [TeacherController::class, "export"]);
-    Route::post("/teacher/{teacher}/reset-password", [TeacherController::class, "resetPassword"]);
-    Route::apiResource("/teacher", TeacherController::class);
-    Route::apiResource("/teaching-assignment", TeachingAssignmentController::class)->parameters(['teaching-assignment' => 'classSubject']);
-    Route::put('/attendance', [AttendanceController::class, 'upsertStatus']);
-    Route::get('/attendance-report/summary', [AttendanceReportController::class, 'summary']);
-    Route::get('/attendance-report/today', [AttendanceReportController::class, 'today']);
-    Route::get('/attendance-report/history', [AttendanceReportController::class, 'history']);
-    Route::post('/attendance-report/export', [AttendanceReportController::class, 'export']);
-    Route::get('/setting', [SettingController::class, 'show']);
-    Route::post('/setting', [SettingController::class, 'upsert']);
+    Route::prefix("/admin")->group(function () {
+        Route::get("/academic", [AdminAcademicYearController::class, 'index']);
+        Route::middleware(['role:admin'])->group(function () {
+            Route::get("/stat", [StatController::class, "statAdmin"]);
+            Route::put('/academic/{academicYear}/status', [AdminAcademicYearController::class, 'handleStatus']);
+            Route::put("/academic/{academicYear}/activate", [AdminAcademicYearController::class, 'activate']);
+            Route::apiResource("/academic", AdminAcademicYearController::class)->parameters(["academic" => "academicYear"])->except(['index']);;
+            Route::get("/calendar", [AcademicCalendarController::class, 'index']);
+            Route::get("/calendar/weekly", [AcademicCalendarController::class, 'weekly']);
+            Route::put("/calendar/{academicCalendar}", [AcademicCalendarController::class, "update"]);
+            Route::get("/class/list", [SchoolClassController::class, "list"]);
+            Route::apiResource("/class", SchoolClassController::class)->parameters(["class" => "schoolClass"]);
+            Route::get("/subject/list", [SubjectController::class, "list"]);
+            Route::apiResource("/subject", SubjectController::class);
+            Route::post("/student/import", [StudentController::class, "import"]);
+            Route::get("/student/export", [StudentController::class, "export"]);
+            Route::post("/student/{student}/reset-password", [StudentController::class, "resetPassword"]);
+            Route::apiResource("/student", StudentController::class);
+            Route::post("/teacher/import", [TeacherController::class, "import"]);
+            Route::get("/teacher/list", [TeacherController::class, "list"]);
+            Route::get("/teacher/export", [TeacherController::class, "export"]);
+            Route::post("/teacher/{teacher}/reset-password", [TeacherController::class, "resetPassword"]);
+            Route::apiResource("/teacher", TeacherController::class);
+            Route::apiResource("/teaching-assignment", TeachingAssignmentController::class)->parameters(['teaching-assignment' => 'classSubject']);
+            Route::put('/attendance', [AttendanceController::class, 'upsertStatus']);
+            Route::get('/attendance-report/summary', [AttendanceReportController::class, 'summary']);
+            Route::get('/attendance-report/today', [AttendanceReportController::class, 'today']);
+            Route::get('/attendance-report/history', [AttendanceReportController::class, 'history']);
+            Route::post('/attendance-report/export', [AttendanceReportController::class, 'export']);
+            Route::get('/setting', [SettingController::class, 'show']);
+            Route::post('/setting', [SettingController::class, 'upsert']);
+        });
+    });
 });

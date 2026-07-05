@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Resources\GradeResource;
 use App\Http\Resources\StudentResource;
+use App\Models\AcademicYear;
 use App\Models\ClassSubject;
 use App\Models\ExamAssignment;
 use App\Models\ExamAttempt;
@@ -13,6 +14,7 @@ use App\Models\Student;
 use App\Models\StudentEnrollment;
 use App\Models\Submission;
 use App\Models\WeightSumScore;
+use Illuminate\Support\Facades\Auth;
 
 class GradeService
 {
@@ -80,6 +82,7 @@ class GradeService
             fn($q) => $q->where('class_subject_id', $classSubjectId)
         )->get()->map(fn($item) => [
             'id'    => $item->id,
+            'title' => $item->post->title,
             'score' => $item->score,
             'date'  => $item->created_at,
         ]);
@@ -90,6 +93,7 @@ class GradeService
             $q->where('class_subject_id', $classSubjectId)
         )->get()->map(fn($item) => [
             'type'  => $item->assignment->exam->type,
+            'title'  => $item->assignment->exam->title,
             'score' => $item->score,
             'date'  => $item->started_at,
         ]);
@@ -100,6 +104,30 @@ class GradeService
             'assignments' => $assignments,
             'exams'       => $exams,
         ];
+    }
+
+    public function getHistory($yearId)
+    {
+        $studentId = Auth::user()->student->id;
+
+        $grades = Grade::with('classSubject.subject')
+            ->whereHas('classSubject', function ($q) use ($yearId) {
+                $q->where('academic_year_id', $yearId);
+            })->where('student_id', $studentId)->get();
+
+        $processedGrades = collect();
+
+        foreach ($grades as $grade) {
+            $weights = WeightSumScore::where('class_subject_id', $grade->classSubject->id)->first();
+            $totals = $this->getTotals($grade->classSubject->id);
+
+            $gradeCollect = collect([$grade]);
+            $final = $this->calculateFinalScores($gradeCollect, $weights, $totals);
+
+            $processedGrades->push($final->first());
+        }
+
+        return $processedGrades;
     }
 
     private function getTotals($classSubjectId)

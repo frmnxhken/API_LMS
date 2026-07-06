@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('exam_attempts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exam_assignment_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('exam_id')->constrained()->cascadeOnDelete();
             $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('submitted_at')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
                 'submitted',
             ])->default('pending');
             $table->unique([
-                'exam_assignment_id',
+                'exam_id',
                 'student_id'
             ]);
             $table->timestamps();

@@ -23,4 +23,9 @@ class ExamAttempt extends Model
             'student_id'
         );
     }
+
+    public function exam()
+    {
+        return $this->belongsTo(Exam::class);
+    }
 }

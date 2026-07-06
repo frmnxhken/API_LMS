@@ -23,6 +23,7 @@ use App\Http\Controllers\API\ExamAttemptController;
 use App\Http\Controllers\API\ExamController;
 use App\Http\Controllers\API\FileStreamController;
 use App\Http\Controllers\API\GradeController;
+use App\Http\Controllers\API\QuestionBankController;
 use App\Http\Controllers\API\QuestionController;
 use App\Http\Controllers\API\StatController;
 use App\Http\Controllers\API\UserController;
@@ -111,7 +112,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/report/{id_student}', [GradeController::class, "show"]);
         });
 
-        Route::apiResource('/exam', ExamController::class);
+        Route::apiResource('/question-bank', QuestionBankController::class);
         Route::prefix('/exam')->group(function () {
             Route::get('{exam}/question', [QuestionController::class, "index"]);
             Route::post('{exam}/question', [QuestionController::class, "store"]);
@@ -124,6 +125,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix("/admin")->group(function () {
         Route::get("/academic", [AdminAcademicYearController::class, 'index']);
+        Route::get("/subject/list", [SubjectController::class, "list"]);
         Route::middleware(['role:admin'])->group(function () {
             Route::get("/stat", [StatController::class, "statAdmin"]);
             Route::put('/academic/{academicYear}/status', [AdminAcademicYearController::class, 'handleStatus']);
@@ -134,7 +136,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put("/calendar/{academicCalendar}", [AcademicCalendarController::class, "update"]);
             Route::get("/class/list", [SchoolClassController::class, "list"]);
             Route::apiResource("/class", SchoolClassController::class)->parameters(["class" => "schoolClass"]);
-            Route::get("/subject/list", [SubjectController::class, "list"]);
             Route::apiResource("/subject", SubjectController::class);
             Route::post("/student/import", [StudentController::class, "import"]);
             Route::get("/student/export", [StudentController::class, "export"]);

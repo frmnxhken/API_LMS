@@ -17,4 +17,14 @@ class Question extends Model
     {
         return $this->hasMany(QuestionOption::class);
     }
+
+    public function questionBank()
+    {
+        return $this->belongsTo(QuestionBank::class);
+    }
+
+    public function exams()
+    {
+        return $this->belongsToMany(Exam::class, 'exam_questions', 'question_id', 'exam_id');
+    }
 }

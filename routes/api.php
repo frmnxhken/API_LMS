@@ -78,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     | TEACHER
     */
     Route::middleware(['role:teacher', 'academicYear:active'])->group(function () {
+        Route::get('/archive', [ClassSubjectController::class, 'archive']);
         Route::delete('/file/{id_post}', [PostController::class, "deletePostFile"])->name('deletePostFile');
         Route::prefix('/class/{id_class_subject}')->group(function () {
             // MATERIAL MANAGE

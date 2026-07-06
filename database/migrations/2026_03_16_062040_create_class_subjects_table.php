@@ -22,7 +22,8 @@ return new class extends Migration
                 'school_class_id',
                 'subject_id',
                 'teacher_id',
-            ]);
+                'academic_year_id'
+            ], 'class_subject_unique');
         });
     }
 

@@ -18,7 +18,8 @@ class ClassSubjectResource extends JsonResource
             'id' => $this->id,
             'class_name' => $this->schoolClass->level . " " . $this->schoolClass->major . "" . $this->schoolClass->section,
             'subject' => $this->subject->name,
-            'teacher' => $this->teacher->user->name
+            'teacher' => $this->teacher->user->name,
+            'academic_year' => $this?->academicYear,
         ];
     }
 }

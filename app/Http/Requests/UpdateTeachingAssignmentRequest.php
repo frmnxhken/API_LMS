@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\AcademicYear;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,6 +25,7 @@ class UpdateTeachingAssignmentRequest extends FormRequest
     public function rules(): array
     {
         $id = $this->route('classSubject')?->id;
+        $academicYearId = AcademicYear::where('is_active', true)->value('id');
 
         return [
             'school_class_id' => ['required', 'exists:school_classes,id'],
@@ -31,20 +33,23 @@ class UpdateTeachingAssignmentRequest extends FormRequest
                 'required',
                 'exists:subjects,id',
                 Rule::unique('class_subjects')
-                    ->where(fn($query) => $query->where('school_class_id', $this->school_class_id))
-                    ->ignore($id),
+                    ->where(function ($query) use ($academicYearId) {
+                        return $query
+                            ->where('school_class_id', $this->school_class_id)
+                            ->where('academic_year_id', $academicYearId);
+                    })->ignore($id),
             ],
 
             'teacher_id' => [
                 'required',
                 'exists:teachers,id',
                 Rule::unique('class_subjects')
-                    ->where(
-                        fn($query) => $query
+                    ->where(function ($query) use ($academicYearId) {
+                        return $query
                             ->where('school_class_id', $this->school_class_id)
                             ->where('subject_id', $this->subject_id)
-                    )
-                    ->ignore($id),
+                            ->where('academic_year_id', $academicYearId);
+                    })->ignore($id),
             ],
         ];
     }

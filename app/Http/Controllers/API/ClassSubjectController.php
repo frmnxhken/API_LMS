@@ -7,8 +7,10 @@ use App\Http\Resources\ActivityResource;
 use App\Http\Resources\ClassSubjectResource;
 use App\Http\Resources\TeacherResource;
 use App\Http\Resources\UserResource;
+use App\Models\AcademicYear;
 use App\Models\ClassSubject;
 use App\Models\Student;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ClassSubjectController extends Controller
@@ -26,6 +28,25 @@ class ClassSubjectController extends Controller
         }
 
         return ClassSubjectResource::collection($classSubjects);
+    }
+
+    public function archive(Request $request)
+    {
+        $teacher = Auth::user()->teacher;
+
+        $academicYearId = $request->input('year');
+
+        if (!$academicYearId) {
+            $academicYearId = AcademicYear::where('is_active', false)->latest('start')->value('id');
+        }
+
+        $data = ClassSubject::withoutGlobalScope('activeAcademicYear')
+            ->with('subject', 'teacher.user', 'schoolClass', 'academicYear')
+            ->where('teacher_id', $teacher->id)
+            ->where('academic_year_id', $academicYearId)
+            ->get();
+
+        return ClassSubjectResource::collection($data);
     }
 
     public function activity($id_class_subject)

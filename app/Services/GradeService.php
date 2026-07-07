@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Http\Resources\GradeResource;
-use App\Http\Resources\StudentResource;
-use App\Models\AcademicYear;
+use App\Http\Resources\StudentEnrollmentResource;
 use App\Models\ClassSubject;
-use App\Models\ExamAssignment;
+use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\Grade;
 use App\Models\Post;
@@ -87,20 +86,20 @@ class GradeService
             'date'  => $item->created_at,
         ]);
 
-        $exams = ExamAttempt::with('assignment.exam')->where('student_id', $studentId)->whereHas(
-            'assignment',
+        $exams = ExamAttempt::with('exam')->where('student_id', $studentId)->whereHas(
+            'exam',
             fn($q) =>
             $q->where('class_subject_id', $classSubjectId)
         )->get()->map(fn($item) => [
-            'type'  => $item->assignment->exam->type,
-            'title'  => $item->assignment->exam->title,
+            'type'  => $item->exam->type,
+            'title' => $item->exam->title,
             'score' => $item->score,
             'date'  => $item->started_at,
         ]);
 
         return [
             'subject'     => $subject->subject->name,
-            'student'     => new StudentResource($student),
+            'student'     => new StudentEnrollmentResource($student),
             'assignments' => $assignments,
             'exams'       => $exams,
         ];
@@ -134,14 +133,13 @@ class GradeService
     {
         $totalAssignment = Post::where('class_subject_id', $classSubjectId)
             ->where('type', 'assignment')->count();
-        $exams = ExamAssignment::where('class_subject_id', $classSubjectId)
-            ->with('exam:id,type')->get();
+        $exams = Exam::where('class_subject_id', $classSubjectId)->get();
 
         return [
             'assignment' => $totalAssignment,
-            'daily'      => $exams->where('exam.type', 'harian')->count(),
-            'uts'        => $exams->where('exam.type', 'uts')->count(),
-            'uas'        => $exams->where('exam.type', 'uas')->count(),
+            'daily'      => $exams->where('type', 'harian')->count(),
+            'uts'        => $exams->where('type', 'uts')->count(),
+            'uas'        => $exams->where('type', 'uas')->count(),
         ];
     }
 

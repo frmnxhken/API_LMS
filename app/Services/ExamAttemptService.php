@@ -22,7 +22,7 @@ class ExamAttemptService
 
         $data = $students->map(function ($student) use ($assignmentId) {
             return [
-                'exam_assignment_id' => $assignmentId,
+                'exam_id' => $assignmentId,
                 'student_id' => $student->id,
                 'score' => 0,
                 'created_at' => now(),
@@ -33,14 +33,14 @@ class ExamAttemptService
         ExamAttempt::insert($data);
     }
 
-    public function rollbackFromAttempts($assignment, $examType)
+    public function rollbackFromAttempts($exam, $examType)
     {
-        $attempts = ExamAttempt::where('exam_assignment_id', $assignment->id)->get();
+        $attempts = ExamAttempt::where('exam_id', $exam->id)->get();
 
         foreach ($attempts as $attempt) {
             $grade = Grade::firstOrCreate([
                 'student_id' => $attempt->student_id,
-                'class_subject_id' => $assignment->class_subject_id,
+                'class_subject_id' => $exam->class_subject_id,
             ]);
 
             $score = $attempt->score ?? 0;
@@ -63,9 +63,9 @@ class ExamAttemptService
     {
         $user = Auth::user();
         $attempt = ExamAttempt::where([
-            'exam_assignment_id' => $exam->id,
+            'exam_id' => $exam->id,
             'student_id' => $user->student->id,
-        ])->with('assignment.exam.subject')->firstOrFail();
+        ])->with('exam.classSubject.subject')->firstOrFail();
 
         return $attempt;
     }
@@ -91,15 +91,19 @@ class ExamAttemptService
         $attempt = $this->getAttempt($exam);
 
         $this->validateAttempt($attempt);
-        $questions = $exam->exam->questions()->with('options')->get();
+        $questions = $exam->questions()->with('options')->get();
+
+        if ($exam->is_random_questions) {
+            $questions = $questions->shuffle()->values();
+        }
 
         $data =  [
             'attempt_id' => $attempt->id,
             'started_at' => $attempt->started_at,
             'end_time'   => $exam->end_time,
-            'duration'   => $exam->exam->duration,
-            'type'       => $exam->exam->type,
-            'subject'    => $exam->exam->subject->name,
+            'duration'   => $exam->duration,
+            'type'       => $exam->type,
+            'subject'    => $exam->classSubject->subject->name,
             'questions'  => ExamQuestionResource::collection($questions),
         ];
 
@@ -116,7 +120,7 @@ class ExamAttemptService
         }
 
         $correct = $this->calculateScore($answers);
-        $total = $exam->exam->questions()->count();
+        $total = $exam->questions()->count();
 
         $score = $total > 0 ? (100 / $total) * $correct : 0;
 
@@ -152,9 +156,12 @@ class ExamAttemptService
 
     private function updateGrade($exam, $user, $score)
     {
-        $grade = Grade::where('student_id', $user->student->id)->firstOrFail();
+        $grade = Grade::firstOrCreate([
+            'student_id' => $user->student->id,
+            'class_subject_id' => $exam->class_subject_id,
+        ]);
 
-        match ($exam->exam->type) {
+        match ($exam->type) {
             'uas' => $grade->update(['uas_score' => $score]),
             'uts' => $grade->update(['uts_score' => $score]),
             'harian' => $grade->update([

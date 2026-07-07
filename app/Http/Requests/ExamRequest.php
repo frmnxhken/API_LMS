@@ -25,10 +25,14 @@ class ExamRequest extends FormRequest
         $examId = $this->route('exam');
 
         return [
-            "title"      => "required|unique:exams,title," . $examId,
-            "subject_id" => "required",
-            "duration"   => "required",
-            "type"       => "required",
+            "title" => "required|unique:exams,title," . $examId,
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'duration' => 'required|integer|min:1',
+            'type' => 'required|in:uts,uas,harian',
+            'is_random_questions' => 'required|boolean',
+            'questions' => 'required|array|min:1',
+            'questions.*' => 'integer|exists:questions,id|distinct',
         ];
     }
 }

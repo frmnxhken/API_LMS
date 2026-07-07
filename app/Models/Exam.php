@@ -18,9 +18,19 @@ class Exam extends Model
         return $this->belongsTo(Subject::class);
     }
 
+    public function classSubject()
+    {
+        return $this->belongsTo(ClassSubject::class);
+    }
+
     public function questions()
     {
-        return $this->hasMany(Question::class);
+        return $this->belongsToMany(
+            Question::class,
+            'exam_questions',
+            'exam_id',
+            'question_id'
+        );
     }
 
     public function assignments()

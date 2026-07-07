@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Exam;
 use App\Models\Question;
+use App\Models\QuestionBank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class QuestionController extends Controller
 {
-    public function index(Exam $exam)
+    public function index(QuestionBank $questionBank)
     {
-        $meta = $exam->load("subject");
-        $questions =  $exam->questions()->with("options")->get();
+        $meta = $questionBank->load("subject");
+        $questions = $questionBank->questions()->with("options")->get();
 
         return response()->json([
             "meta"      => $meta,
@@ -21,11 +21,11 @@ class QuestionController extends Controller
         ]);
     }
 
-    public function store(Request $request, Exam $exam)
+    public function store(Request $request, QuestionBank $questionBank)
     {
-        DB::transaction(function () use ($request, $exam) {
+        DB::transaction(function () use ($request, $questionBank) {
             foreach ($request->questions as $questionData) {
-                $question = $exam->questions()->create([
+                $question = $questionBank->questions()->create([
                     "question" => $questionData["question"]
                 ]);
 

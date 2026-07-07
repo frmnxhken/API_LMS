@@ -52,7 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::get('/post/{id_post}', [PostController::class, "detailPost"]);
                 Route::get('/post/{id_post}/comment', [CommentController::class, "index"]);
                 Route::post('/post/{id_post}/comment', [CommentController::class, "store"]);
-                Route::get('/exam', [ExamAssignmentController::class, 'index']);
+                Route::get('/exam', [ExamController::class, 'index']);
                 Route::middleware('role:student')->group(function () {
                     Route::put('/exam/{exam}/start', [ExamAttemptController::class, 'store']);
                     Route::get('/exam/{exam}/detail', [ExamAttemptController::class, 'index']);
@@ -106,16 +106,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
             Route::get('/weight-score', [WeightSumController::class, "show"]);
             Route::put('/weight-score', [WeightSumController::class, "update"]);
-            Route::apiResource('/exam', ExamAssignmentController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('/exam', ExamController::class)->only(['store', 'update', 'destroy', 'show']);
             Route::get('/report', [GradeController::class, "index"]);
             Route::get('/report/export', [GradeController::class, "export"]);
             Route::get('/report/{id_student}', [GradeController::class, "show"]);
         });
 
         Route::apiResource('/question-bank', QuestionBankController::class);
-        Route::prefix('/exam')->group(function () {
-            Route::get('{exam}/question', [QuestionController::class, "index"]);
-            Route::post('{exam}/question', [QuestionController::class, "store"]);
+        Route::prefix('/question-bank')->group(function () {
+            Route::get('{questionBank}/question', [QuestionController::class, "index"]);
+            Route::post('{questionBank}/question', [QuestionController::class, "store"]);
             Route::put('/question/{question}', [QuestionController::class, 'update']);
             Route::delete('/question/{question}', [QuestionController::class, 'destroy']);
         });

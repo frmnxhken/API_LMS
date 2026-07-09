@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\QuestionBankRequest;
+use App\Models\ClassSubject;
 use App\Models\QuestionBank;
 use App\Models\Teacher;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,15 @@ class QuestionBankController extends Controller
     {
         $data = QuestionBank::with('subject')->where('teacher_id', $this->teacher()->id)->get();
         return response()->json(['data' => $data]);
+    }
+
+    public function list($id_class_subject)
+    {
+        $classSubject = ClassSubject::findOrFail($id_class_subject);
+        $data = QuestionBank::with(['subject', 'teacher.user'])
+            ->where('subject_id', $classSubject->subject_id)->get();
+
+        return response()->json($data);
     }
 
     public function show($id)

@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\Admin\AcademicCalendarController;
 use App\Http\Controllers\API\Admin\AcademicYearController as AdminAcademicYearController;
 use App\Http\Controllers\API\Admin\AttendanceReportController;
+use App\Http\Controllers\API\Admin\PromotionController;
 use App\Http\Controllers\API\AssesmentController;
 use App\Http\Controllers\API\AssignmentController;
 use App\Http\Controllers\API\AuthController;
@@ -155,6 +156,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/attendance-report/export', [AttendanceReportController::class, 'export']);
             Route::get('/setting', [SettingController::class, 'show']);
             Route::post('/setting', [SettingController::class, 'upsert']);
+            Route::get('/promotion', [PromotionController::class, 'index']);
+            Route::post('/promotion', [PromotionController::class, 'store']);
         });
     });
 });

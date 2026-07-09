@@ -24,7 +24,8 @@ class SchoolClassController extends Controller implements HasMiddleware
 
     public function list()
     {
-        return response()->json(SchoolClass::get());
+        $data = SchoolClass::withCount('enrollments')->get();
+        return response()->json($data);
     }
 
     public function show(SchoolClass $schoolClass)
